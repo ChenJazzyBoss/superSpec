@@ -8,3 +8,4 @@
 export { generateFlowchart } from './flowchart.js';
 export { generateStateDiagram } from './state.js';
 export { generateDecisionDiagram } from './decision.js';
+export { generateTestCoverageDiagram } from './test-coverage.js';
