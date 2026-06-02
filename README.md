@@ -98,7 +98,9 @@ Then 错误处理
 │   └── validate.js          # 校验脚本（可独立运行）
 ├── specs/
 │   └── <spec-name>/
-│       └── spec.md          # spec 文件
+│       ├── spec.md          # spec 文件
+│       └── history/         # 快照历史
+│           └── *.md
 └── templates/
     └── spec-template.md     # spec 模板
 
@@ -106,8 +108,12 @@ Then 错误处理
 ├── skills/
 │   ├── superspec:generate-spec/
 │   │   └── SKILL.md         # 生成 spec 的技能
-│   └── superspec:validate-spec/
-│       └── SKILL.md         # 校验 spec 的技能
+│   ├── superspec:validate-spec/
+│   │   └── SKILL.md         # 校验 spec 的技能
+│   ├── superspec:update-spec/
+│   │   └── SKILL.md         # 增量更新 spec 的技能
+│   └── superspec:generate-test/
+│       └── SKILL.md         # 生成测试代码的技能
 └── hooks/
     ├── hooks.json           # Hook 配置
     └── session-start        # 会话启动脚本
@@ -116,10 +122,111 @@ Then 错误处理
 ## CLI 命令
 
 ```bash
-superspec init          # 初始化项目骨架
-superspec validate <n>  # 校验 spec 文件
-superspec --help        # 显示帮助
-superspec --version     # 显示版本
+superspec init              # 初始化项目骨架
+superspec init --interactive # 交互式配置
+superspec init --ci         # 初始化并生成 CI workflow
+superspec validate <name>   # 校验 spec 文件
+superspec update <name>     # 增量更新 spec（Delta Merge）
+superspec generate <name>   # 生成测试代码骨架
+superspec ci                # 批量校验所有 spec
+superspec diff <name>       # 对比当前与历史版本
+superspec history <name>    # 查看历史快照列表
+superspec uninstall         # 移除 superSpec 生成的所有文件
+superspec --help            # 显示帮助
+superspec --version         # 显示版本
+```
+
+## v2 功能
+
+### Delta Merge — 增量更新
+
+使用结构化的 Delta JSON 描述 spec 的增量变更，无需每次重写整个文件。
+
+```bash
+# 从文件更新
+superspec update batch-export --file delta.json
+
+# 从 stdin 更新
+echo '{"specName":"batch-export","changes":[...]}' | superspec update batch-export
+```
+
+Delta 格式示例：
+
+```json
+{
+  "specName": "batch-export",
+  "changes": [
+    { "type": "ADDED", "section": "requirement", "target": "PDF 导出", "content": "系统 SHALL 支持 PDF 格式导出。" },
+    { "type": "MODIFIED", "section": "requirement", "target": "导出格式支持", "field": "text", "newValue": "系统 SHALL 支持 CSV、XLSX 和 PDF 格式。" },
+    { "type": "REMOVED", "section": "scenario", "target": "CSV 导出", "parent": "导出格式支持" },
+    { "type": "RENAMED", "section": "requirement", "target": "旧名称", "newValue": "新名称" }
+  ]
+}
+```
+
+变更类型：`ADDED` / `REMOVED` / `MODIFIED` / `RENAMED`
+变更位置：`overview` / `requirement` / `scenario`
+
+### Adapter — 测试代码生成
+
+根据 spec 自动生成测试代码骨架。
+
+```bash
+# 生成 TypeScript (vitest) 测试
+superspec generate batch-export --lang typescript
+
+# 生成 Python (pytest) 测试
+superspec generate batch-export --lang python
+
+# 写入文件
+superspec generate batch-export --lang typescript --output test/batch-export.test.ts
+```
+
+支持的语言：
+- **typescript** — vitest 测试骨架（describe/it/expect）
+- **python** — pytest 测试骨架（class/test_）
+
+### CI 集成
+
+批量校验所有 spec，适合在 CI 流程中使用。
+
+```bash
+# 校验所有 spec
+superspec ci
+
+# 严格模式（WARNING 也视为失败）
+superspec ci --strict
+
+# JSON 输出
+superspec ci --json
+```
+
+初始化时生成 GitHub Actions workflow：
+
+```bash
+superspec init --ci
+```
+
+### 版本追踪
+
+自动在校验通过时保存快照，支持历史对比。
+
+```bash
+# 查看历史版本
+superspec history batch-export
+
+# 对比当前与最近快照
+superspec diff batch-export
+
+# 对比指定版本
+superspec diff batch-export --from 2026-06-02T10-30-00
+```
+
+### 卸载
+
+```bash
+superspec uninstall       # 交互确认
+superspec uninstall -y    # 跳过确认
 ```
 
 ## 开发
