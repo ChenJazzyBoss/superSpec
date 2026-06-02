@@ -35,21 +35,36 @@ program
   .option('-i, --interactive', '交互式配置')
   .option('--ci', '生成 GitHub Actions CI workflow')
   .action(async (options: { interactive?: boolean; ci?: boolean }) => {
-    console.log('正在初始化 superSpec...\n');
     const projectRoot = process.cwd();
-    const result = initProject(projectRoot, { ci: options.ci });
 
-    if (result.skipped) {
-      return;
-    }
+    if (options.interactive) {
+      const { collectInteractiveOptions } = await import('../core/init.js');
+      const interactiveOptions = await collectInteractiveOptions();
+      console.log('正在初始化 superSpec...\n');
+      const result = initProject(projectRoot, interactiveOptions);
 
-    // 输出安装摘要
-    console.log('superSpec 初始化完成！\n');
-    console.log('已创建以下文件：');
-    for (const file of result.created) {
-      console.log(`  ${file}`);
+      if (result.skipped) return;
+
+      console.log('superSpec 初始化完成！\n');
+      console.log('已创建以下文件：');
+      for (const file of result.created) {
+        console.log(`  ${file}`);
+      }
+      console.log(`\n配置: 语言=${interactiveOptions.language}, 严格模式=${interactiveOptions.strict}`);
+      console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
+    } else {
+      console.log('正在初始化 superSpec...\n');
+      const result = initProject(projectRoot, { ci: options.ci });
+
+      if (result.skipped) return;
+
+      console.log('superSpec 初始化完成！\n');
+      console.log('已创建以下文件：');
+      for (const file of result.created) {
+        console.log(`  ${file}`);
+      }
+      console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
     }
-    console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
   });
 
 program

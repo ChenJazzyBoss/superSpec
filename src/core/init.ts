@@ -33,9 +33,17 @@ function toFsPath(logicalPath: string): string {
   return logicalPath;
 }
 
-/** config.yaml 内容 */
-const CONFIG_YAML = `version: "1.0.0"
+/** 生成 config.yaml 内容 */
+function generateConfigYaml(options: InitOptions = {}): string {
+  const language = options.language ?? 'typescript';
+  const strict = options.strict ?? false;
+  const projectName = options.projectName ?? 'my-project';
+
+  return `version: "1.0.0"
+project: "${projectName}"
 tool: "claude-code"
+language: "${language}"
+strict: ${strict}
 spec:
   min_purpose_length: 50
   min_scenario_count: 2
@@ -45,6 +53,7 @@ spec:
     - SHALL
     - MUST
 `;
+}
 
 /** 需要创建的目录列表 */
 const DIRECTORIES = [
@@ -91,6 +100,44 @@ const FILE_COPIES: [string, string][] = [
 export interface InitOptions {
   /** 是否生成 GitHub Actions CI workflow */
   ci?: boolean;
+  /** 项目名称 */
+  projectName?: string;
+  /** 目标语言 */
+  language?: 'typescript' | 'python';
+  /** 是否启用严格模式 */
+  strict?: boolean;
+}
+
+/**
+ * 交互式收集初始化配置
+ */
+export async function collectInteractiveOptions(): Promise<InitOptions> {
+  const readline = await import('readline');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  const ask = (question: string): Promise<string> =>
+    new Promise((resolve) => rl.question(question, resolve));
+
+  console.log('🎯 superSpec 交互式配置\n');
+
+  const projectName = await ask('项目名称 (my-project): ') || 'my-project';
+
+  let language: 'typescript' | 'python' = 'typescript';
+  const langAnswer = await ask('目标语言 (typescript/python) [typescript]: ');
+  if (langAnswer.toLowerCase() === 'python') {
+    language = 'python';
+  }
+
+  const strictAnswer = await ask('启用严格模式？WARNING 也视为错误 (y/N) [N]: ');
+  const strict = strictAnswer.toLowerCase() === 'y';
+
+  const ciAnswer = await ask('生成 GitHub Actions CI workflow？(y/N) [N]: ');
+  const ci = ciAnswer.toLowerCase() === 'y';
+
+  rl.close();
+
+  console.log('');
+  return { projectName, language, strict, ci };
 }
 
 /**
@@ -147,7 +194,7 @@ export function initProject(projectRoot: string, options: InitOptions = {}): {
 
   // 3. 生成 config.yaml
   const configPath = join(projectRoot, '.superspec', 'config.yaml');
-  writeFileSync(configPath, CONFIG_YAML, 'utf-8');
+  writeFileSync(configPath, generateConfigYaml(options), 'utf-8');
   created.push('.superspec/config.yaml');
 
   // 4. 创建 .superspec/specs/.gitkeep
