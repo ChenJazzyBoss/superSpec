@@ -105,6 +105,12 @@ export function initProject(projectRoot: string): {
     return { skipped: true, created: [] };
   }
 
+  // 检测 Claude Code 配置目录
+  const claudeDir = join(projectRoot, '.claude');
+  if (!existsSync(claudeDir)) {
+    console.warn('警告: 未检测到 Claude Code 配置目录 (.claude/)，将自动创建。');
+  }
+
   const created: string[] = [];
 
   // 1. 创建目录结构
