@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hook": ".claude/hooks/session-start"
+      }
+    ]
+  }
+}
