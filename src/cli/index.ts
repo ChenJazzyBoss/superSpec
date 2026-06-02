@@ -32,10 +32,12 @@ program
 program
   .command('init')
   .description('初始化 superSpec 项目骨架')
-  .action(async () => {
+  .option('-i, --interactive', '交互式配置')
+  .option('--ci', '生成 GitHub Actions CI workflow')
+  .action(async (options: { interactive?: boolean; ci?: boolean }) => {
     console.log('正在初始化 superSpec...\n');
     const projectRoot = process.cwd();
-    const result = initProject(projectRoot);
+    const result = initProject(projectRoot, { ci: options.ci });
 
     if (result.skipped) {
       return;

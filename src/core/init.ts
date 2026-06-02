@@ -87,13 +87,20 @@ const FILE_COPIES: [string, string][] = [
   ],
 ];
 
+/** 初始化选项 */
+export interface InitOptions {
+  /** 是否生成 GitHub Actions CI workflow */
+  ci?: boolean;
+}
+
 /**
  * 初始化 superSpec 项目骨架
  *
  * @param projectRoot - 项目根目录（通常是 process.cwd()）
+ * @param options - 初始化选项
  * @returns 初始化结果
  */
-export function initProject(projectRoot: string): {
+export function initProject(projectRoot: string, options: InitOptions = {}): {
   skipped: boolean;
   created: string[];
 } {
@@ -152,6 +159,55 @@ export function initProject(projectRoot: string): {
   const claudeMdPath = join(projectRoot, 'CLAUDE.md');
   injectClaudeMd(claudeMdPath);
   created.push('CLAUDE.md');
+
+  // 6. 生成 CI workflow（如果启用）
+  if (options.ci) {
+    const ciWorkflowDir = join(projectRoot, '.github', 'workflows');
+    const ciWorkflowPath = join(ciWorkflowDir, 'superspec-validate.yml');
+
+    if (existsSync(ciWorkflowPath)) {
+      console.log('workflow 已存在，跳过');
+    } else {
+      mkdirSync(ciWorkflowDir, { recursive: true });
+      const workflowContent = `name: superSpec Validate
+
+on:
+  pull_request:
+    paths:
+      - '.superspec/specs/**'
+      - '.superspec/scripts/validate.js'
+
+jobs:
+  validate-specs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle validate script
+        run: npm run bundle-validate
+
+      - name: Validate all specs
+        run: node bin/superspec.js ci
+
+      - name: Validate specs (strict mode)
+        run: node bin/superspec.js ci --strict
+`;
+      writeFileSync(ciWorkflowPath, workflowContent, 'utf-8');
+      created.push('.github/workflows/superspec-validate.yml');
+    }
+  }
 
   return { skipped: false, created };
 }
