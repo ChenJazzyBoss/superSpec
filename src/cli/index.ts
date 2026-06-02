@@ -229,4 +229,51 @@ program
     process.exit(summary.valid ? 0 : 1);
   });
 
+program
+  .command('diff')
+  .description('对比 spec 的当前版本与历史版本')
+  .argument('<name>', 'spec 名称')
+  .option('--from <timestamp>', '指定历史版本（格式: YYYY-MM-DDTHH-mm-ss）')
+  .action(async (name: string, options: { from?: string }) => {
+    const { readFileSync, existsSync } = await import('fs');
+    const { join } = await import('path');
+    const { parseSpec } = await import('../core/spec-parser.js');
+    const { readSnapshot, diffSpec, formatDiff } = await import('../history/index.js');
+
+    const cwd = process.cwd();
+    const specDir = join(cwd, '.superspec', 'specs', name);
+    const specPath = join(specDir, 'spec.md');
+
+    // 读取当前 spec
+    if (!existsSync(specPath)) {
+      console.error(`错误: spec 文件不存在 ${specPath}`);
+      process.exit(1);
+    }
+    const currentContent = readFileSync(specPath, 'utf-8');
+    const currentSpec = parseSpec(currentContent, name);
+
+    // 获取历史快照
+    let previousContent: string | null = null;
+    if (options.from) {
+      const filename = options.from.endsWith('.md') ? options.from : `${options.from}.md`;
+      previousContent = readSnapshot(specDir, filename);
+      if (!previousContent) {
+        console.error(`错误: 快照 ${options.from} 不存在`);
+        process.exit(1);
+      }
+    } else {
+      const { getLatestSnapshot } = await import('../history/index.js');
+      previousContent = getLatestSnapshot(specDir);
+    }
+
+    if (!previousContent) {
+      console.log(`📜 spec "${name}" 无历史版本，无法对比`);
+      return;
+    }
+
+    const previousSpec = parseSpec(previousContent, name);
+    const result = diffSpec(currentSpec, previousSpec);
+    console.log(formatDiff(name, result));
+  });
+
 program.parse();
