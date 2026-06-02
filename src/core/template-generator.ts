@@ -1,9 +1,11 @@
 /**
- * 模板生成器
- * 提供规范文档模板的生成与保存功能
+ * Spec 模板生成器
+ *
+ * 从配置常量派生 Markdown 模板，确保模板和校验同源。
  */
 
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
 import {
   MIN_PURPOSE_LENGTH,
   MIN_SCENARIO_COUNT,
@@ -38,17 +40,17 @@ Then <预期结果>
 `;
 
 /**
- * 生成规范文档模板
- * @returns Markdown 格式的规范模板字符串
+ * 生成 spec 模板内容
  */
 export function generateSpecTemplate(): string {
   return SPEC_TEMPLATE;
 }
 
 /**
- * 将规范模板保存到指定路径
- * @param outputPath - 输出文件路径
+ * 将模板保存到指定路径
  */
 export function saveTemplate(outputPath: string): void {
+  const dir = dirname(outputPath);
+  mkdirSync(dir, { recursive: true });
   writeFileSync(outputPath, SPEC_TEMPLATE, 'utf-8');
 }
