@@ -2,7 +2,7 @@
 
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
-import { execFileSync } from 'child_process';
+import { execSync } from 'child_process';
 
 const distDir = join(process.cwd(), 'dist');
 
@@ -21,7 +21,7 @@ mkdirSync(distDir, { recursive: true });
 // Run TypeScript compiler
 console.log('Compiling TypeScript...');
 try {
-  execFileSync('node_modules/.bin/tsc', { stdio: 'inherit' });
+  execSync('npx tsc', { stdio: 'inherit' });
   console.log('\nBuild completed successfully!');
 } catch (error) {
   console.error('\nBuild failed!');
