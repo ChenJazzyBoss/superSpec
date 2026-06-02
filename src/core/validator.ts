@@ -66,7 +66,15 @@ export class Validator {
       issues.push({ level: 'ERROR', path: 'file', message });
     }
 
-    return this.createReport(issues);
+    const report = this.createReport(issues);
+
+    // 校验通过时保存快照
+    if (report.valid) {
+      const { saveSnapshot } = await import('../history/snapshot.js');
+      saveSnapshot(filePath, name);
+    }
+
+    return report;
   }
 
   /**
