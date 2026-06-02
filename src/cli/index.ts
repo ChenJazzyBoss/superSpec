@@ -8,6 +8,7 @@ import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { initProject } from '../core/init.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -32,9 +33,21 @@ program
   .command('init')
   .description('初始化 superSpec 项目骨架')
   .action(async () => {
-    // TODO: 在 init 命令整合任务中实现
-    console.log('正在初始化 superSpec...');
-    console.log('（此命令尚未完整实现，敬请期待）');
+    console.log('正在初始化 superSpec...\n');
+    const projectRoot = process.cwd();
+    const result = initProject(projectRoot);
+
+    if (result.skipped) {
+      return;
+    }
+
+    // 输出安装摘要
+    console.log('superSpec 初始化完成！\n');
+    console.log('已创建以下文件：');
+    for (const file of result.created) {
+      console.log(`  ${file}`);
+    }
+    console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
   });
 
 program
