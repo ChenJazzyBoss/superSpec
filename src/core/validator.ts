@@ -11,7 +11,7 @@ import { ZodError } from 'zod';
 import { readFileSync } from 'fs';
 import { parseSpec } from './spec-parser.js';
 import { SpecSchema, type Spec } from './spec-schema.js';
-import { MIN_PURPOSE_LENGTH, MIN_SCENARIO_COUNT } from './config.js';
+import { MIN_PURPOSE_LENGTH, RECOMMENDED_SCENARIO_COUNT } from './config.js';
 
 /**
  * 校验问题条目
@@ -96,9 +96,9 @@ export class Validator {
 
   /**
    * 业务规则校验
-   * - overview 长度检查
-   * - requirement 关键词检查
-   * - requirement 场景数量检查
+   * - overview 长度检查（WARNING，Zod 已有 min(50) 作为底线）
+   * - requirement 关键词检查（Zod 已有 refine 作为底线）
+   * - requirement 场景数量检查（推荐 3+，WARNING）
    */
   private applyBusinessRules(spec: Spec): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
@@ -123,13 +123,12 @@ export class Validator {
         });
       }
 
-      // 检查场景数量
-      if (req.scenarios.length < MIN_SCENARIO_COUNT) {
-        const level = req.scenarios.length === 1 ? 'WARNING' : 'ERROR';
+      // 检查场景数量（推荐值，WARNING）
+      if (req.scenarios.length < RECOMMENDED_SCENARIO_COUNT) {
         issues.push({
-          level,
+          level: 'WARNING',
           path: `requirements[${index}].scenarios`,
-          message: `需求 "${req.name}" 的场景数量不足（当前 ${req.scenarios.length} 个，要求至少 ${MIN_SCENARIO_COUNT} 个）`,
+          message: `需求 "${req.name}" 的场景数量不足推荐值（当前 ${req.scenarios.length} 个，推荐至少 ${RECOMMENDED_SCENARIO_COUNT} 个以提高验证覆盖率）`,
         });
       }
     });
