@@ -208,4 +208,23 @@ program
     }
   });
 
+program
+  .command('ci')
+  .description('批量校验所有 spec 文件')
+  .option('--strict', '启用严格模式（WARNING 也导致失败）')
+  .option('--json', '输出 JSON 格式')
+  .action(async (options: { strict?: boolean; json?: boolean }) => {
+    const { runCi, printCiResult } = await import('../ci/ci-runner.js');
+    const cwd = process.cwd();
+    const summary = await runCi(cwd, options.strict);
+
+    if (options.json) {
+      console.log(JSON.stringify(summary, null, 2));
+    } else {
+      printCiResult(summary);
+    }
+
+    process.exit(summary.valid ? 0 : 1);
+  });
+
 program.parse();
