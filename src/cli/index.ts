@@ -62,4 +62,94 @@ program
     console.log('（此命令尚未完整实现，敬请期待）');
   });
 
+program
+  .command('update')
+  .description('增量更新 spec 文件')
+  .argument('<name>', 'spec 名称')
+  .option('-f, --file <path>', '从 JSON 文件读取 Delta（默认从 stdin 读取）')
+  .action(async (name: string, options: { file?: string }) => {
+    const { readFileSync } = await import('fs');
+    const { applyDelta } = await import('../core/delta-merge.js');
+    const { parseSpec } = await import('../core/spec-parser.js');
+    const { Validator } = await import('../core/validator.js');
+    const { join } = await import('path');
+
+    const cwd = process.cwd();
+    const specPath = join(cwd, '.superspec', 'specs', name, 'spec.md');
+
+    // 读取 Delta JSON
+    let deltaJson: string;
+    if (options.file) {
+      try {
+        deltaJson = readFileSync(options.file, 'utf-8');
+      } catch {
+        console.error(`错误: 无法读取文件 ${options.file}`);
+        process.exit(1);
+      }
+    } else {
+      // 从 stdin 读取
+      const chunks: Buffer[] = [];
+      for await (const chunk of process.stdin) {
+        chunks.push(chunk);
+      }
+      deltaJson = Buffer.concat(chunks).toString('utf-8');
+    }
+
+    // 解析 Delta
+    let delta;
+    try {
+      const { DeltaSchema } = await import('../core/delta-schema.js');
+      delta = DeltaSchema.parse(JSON.parse(deltaJson));
+    } catch (err) {
+      console.error('错误: Delta JSON 格式不正确');
+      if (err instanceof Error) console.error(err.message);
+      process.exit(1);
+    }
+
+    // 读取现有 spec
+    let spec;
+    try {
+      const content = readFileSync(specPath, 'utf-8');
+      spec = parseSpec(content, name);
+    } catch {
+      console.error(`错误: 无法读取 spec 文件 ${specPath}`);
+      process.exit(1);
+    }
+
+    // 应用 Delta
+    try {
+      const updated = applyDelta(spec, delta);
+
+      // 生成更新后的 Markdown
+      const { generateSpecContent } = await import('../core/delta-markdown.js');
+      const newContent = generateSpecContent(updated);
+
+      // 写入文件
+      const { writeFileSync } = await import('fs');
+      writeFileSync(specPath, newContent, 'utf-8');
+
+      console.log(`✅ spec "${name}" 已更新`);
+      console.log(`   需求数: ${updated.requirements.length}`);
+      console.log(`   变更项: ${delta.changes.length}`);
+
+      // 自动校验
+      const validator = new Validator(false);
+      const report = await validator.validateSpec(specPath, name);
+      if (report.valid) {
+        console.log('   校验: ✅ 通过');
+      } else {
+        console.log(`   校验: ❌ 失败 (${report.summary.errors} error, ${report.summary.warnings} warning)`);
+        for (const issue of report.issues) {
+          if (issue.level === 'ERROR') {
+            console.log(`     ❌ ${issue.message}`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`错误: Delta 合并失败`);
+      if (err instanceof Error) console.error(err.message);
+      process.exit(1);
+    }
+  });
+
 program.parse();
