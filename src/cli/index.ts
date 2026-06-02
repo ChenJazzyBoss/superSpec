@@ -322,6 +322,69 @@ program
   });
 
 program
+  .command('archive')
+  .description('归档完成的变更')
+  .argument('<name>', '变更名称')
+  .action(async (name: string) => {
+    const { archiveChange } = await import('../core/archive.js');
+
+    const cwd = process.cwd();
+
+    try {
+      console.log(`正在归档变更: ${name}\n`);
+      const result = await archiveChange(cwd, name);
+
+      console.log('归档完成！\n');
+      console.log(`  变更名称: ${result.name}`);
+      console.log(`  目标 spec: ${result.specName}`);
+      console.log(`  变更数量: ${result.changesCount}`);
+      console.log(`  归档路径: ${result.archivePath}`);
+      console.log(`  校验结果: ${result.validationPassed ? '通过' : '未通过'}`);
+    } catch (err) {
+      console.error(`归档失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('changes')
+  .description('列出进行中的变更')
+  .action(async () => {
+    const { listChanges } = await import('../core/changes.js');
+
+    const cwd = process.cwd();
+    const changes = listChanges(cwd);
+
+    console.log('进行中的变更:\n');
+
+    if (changes.length === 0) {
+      console.log('暂无进行中的变更');
+      return;
+    }
+
+    const statusLabel: Record<string, string> = {
+      pending: '待处理',
+      ready: '就绪',
+      conflict: '冲突',
+    };
+
+    for (const change of changes) {
+      const status = statusLabel[change.status] ?? change.status;
+      console.log(`  ${change.name}`);
+      if (change.specName) {
+        console.log(`    spec: ${change.specName}`);
+      }
+      if (change.createdAt) {
+        console.log(`    创建时间: ${change.createdAt}`);
+      }
+      console.log(`    状态: ${status}`);
+      console.log('');
+    }
+
+    console.log(`共 ${changes.length} 个变更`);
+  });
+
+program
   .command('uninstall')
   .description('移除 superSpec 生成的所有文件')
   .option('-y, --yes', '跳过确认提示')
