@@ -244,7 +244,6 @@ program
     const specDir = join(cwd, '.superspec', 'specs', name);
     const specPath = join(specDir, 'spec.md');
 
-    // 读取当前 spec
     if (!existsSync(specPath)) {
       console.error(`错误: spec 文件不存在 ${specPath}`);
       process.exit(1);
@@ -252,7 +251,6 @@ program
     const currentContent = readFileSync(specPath, 'utf-8');
     const currentSpec = parseSpec(currentContent, name);
 
-    // 获取历史快照
     let previousContent: string | null = null;
     if (options.from) {
       const filename = options.from.endsWith('.md') ? options.from : `${options.from}.md`;
@@ -274,6 +272,38 @@ program
     const previousSpec = parseSpec(previousContent, name);
     const result = diffSpec(currentSpec, previousSpec);
     console.log(formatDiff(name, result));
+  });
+
+program
+  .command('history')
+  .description('列出 spec 的所有历史快照')
+  .argument('<name>', 'spec 名称')
+  .action(async (name: string) => {
+    const { join } = await import('path');
+    const { listSnapshots } = await import('../history/index.js');
+
+    const cwd = process.cwd();
+    const specDir = join(cwd, '.superspec', 'specs', name);
+    const snapshots = listSnapshots(specDir);
+
+    console.log(`📜 spec "${name}" 历史版本\n`);
+
+    if (snapshots.length === 0) {
+      console.log('暂无历史版本');
+      return;
+    }
+
+    snapshots.forEach((filename: string, index: number) => {
+      const match = filename.match(/^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})\.md$/);
+      if (match) {
+        const [, date, h, m, s] = match;
+        console.log(`  ${index + 1}. ${date} ${h}:${m}:${s}`);
+      } else {
+        console.log(`  ${index + 1}. ${filename}`);
+      }
+    });
+
+    console.log(`\n共 ${snapshots.length} 个历史版本`);
   });
 
 program.parse();
