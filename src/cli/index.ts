@@ -63,6 +63,62 @@ program
   });
 
 program
+  .command('generate')
+  .description('根据 spec 生成测试代码骨架')
+  .argument('<name>', 'spec 名称')
+  .option('-l, --lang <language>', '目标语言（typescript/python）', 'typescript')
+  .option('-o, --output <path>', '输出文件路径（默认输出到 stdout）')
+  .action(async (name: string, options: { lang: string; output?: string }) => {
+    const { readFileSync, writeFileSync, mkdirSync, existsSync } = await import('fs');
+    const { dirname, join } = await import('path');
+    const { parseSpec } = await import('../core/spec-parser.js');
+    const { adapterRegistry } = await import('../adapters/registry.js');
+    // 确保 adapters 被加载（它们会自动注册）
+    await import('../adapters/typescript.js');
+    await import('../adapters/python.js');
+
+    const cwd = process.cwd();
+    const specPath = join(cwd, '.superspec', 'specs', name, 'spec.md');
+
+    // 读取 spec
+    let spec;
+    try {
+      const content = readFileSync(specPath, 'utf-8');
+      spec = parseSpec(content, name);
+    } catch {
+      console.error(`错误: 无法读取 spec 文件 ${specPath}`);
+      process.exit(1);
+    }
+
+    // 获取 adapter
+    let adapter;
+    try {
+      adapter = adapterRegistry.get(options.lang);
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : '未知错误');
+      process.exit(1);
+    }
+
+    // 生成代码
+    const code = adapter.generate(spec);
+
+    // 输出
+    if (options.output) {
+      const outputDir = dirname(options.output);
+      if (!existsSync(outputDir)) {
+        mkdirSync(outputDir, { recursive: true });
+      }
+      writeFileSync(options.output, code, 'utf-8');
+      console.log(`✅ 测试代码已生成: ${options.output}`);
+      console.log(`   语言: ${adapter.displayName}`);
+      console.log(`   需求数: ${spec.requirements.length}`);
+      console.log(`   场景数: ${spec.requirements.reduce((sum, r) => sum + r.scenarios.length, 0)}`);
+    } else {
+      console.log(code);
+    }
+  });
+
+program
   .command('update')
   .description('增量更新 spec 文件')
   .argument('<name>', 'spec 名称')
