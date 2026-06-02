@@ -27,6 +27,35 @@ description: 当用户提出新功能需求或修改需求时使用，在编写�
 这不可协商。
 </EXTREMELY-IMPORTANT>
 
+## 任务分解示例
+
+以下图展示了 spec 的标准分解结构：
+
+```mermaid
+flowchart TB
+  subgraph spec["📋 功能名称"]
+    direction TB
+    subgraph req0["🔑 需求1名称"]
+      R0S0["✅ 正常场景"]
+      R0S1["❌ 异常场景"]
+      R0S2["⚠️ 边界场景"]
+    end
+    subgraph req1["🔑 需求2名称"]
+      R1S0["✅ 正常场景"]
+      R1S1["❌ 异常场景"]
+    end
+  end
+
+  classDef happy fill:#d4edda,stroke:#28a745,color:#155724
+  classDef error fill:#f8d7da,stroke:#dc3545,color:#721c24
+  classDef edge fill:#fff3cd,stroke:#ffc107,color:#856404
+  class R0S0,R1S0 happy
+  class R0S1,R1S1 error
+  class R0S2 edge
+```
+
+> 实际生成的图表会根据你的 spec 数据动态变化。
+
 ## 工作流程
 
 1. **理解需求** — 与用户确认需求的范围和边界

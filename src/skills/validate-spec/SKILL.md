@@ -33,6 +33,28 @@ node .superspec/scripts/validate.js <spec-file-path>
 node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md
 ```
 
+## 校验决策流程
+
+```mermaid
+flowchart TD
+  Start["开始校验"] --> Parse["解析 Spec 文件"]
+  Parse --> SchemaCheck{"Schema 校验<br/>通过？"}
+  SchemaCheck -->|否| SchemaFail["❌ Schema 校验失败<br/>返回 ERROR"]
+  SchemaCheck -->|是| RuleCheck["规则引擎校验"]
+  RuleCheck --> HasError{"存在 ERROR？"}
+  HasError -->|是| ErrorResult["❌ 校验失败"]
+  HasError -->|否| HasWarning{"存在 WARNING？"}
+  HasWarning -->|是| StrictCheck{"strictMode？"}
+  StrictCheck -->|是| StrictFail["⚠️ strictMode 失败"]
+  StrictCheck -->|否| WarnResult["⚠️ 通过（有警告）"]
+  HasWarning -->|否| Pass["✅ 校验通过"]
+  SchemaFail --> End["结束"]
+  ErrorResult --> End
+  StrictFail --> End
+  WarnResult --> End
+  Pass --> End
+```
+
 ## 输出格式
 
 校验工具输出 JSON 格式：
