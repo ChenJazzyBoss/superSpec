@@ -1,4 +1,12 @@
-import { Spec } from './spec-schema.js';
+/**
+ * Markdown Spec 解析器
+ *
+ * 将 Markdown 格式的 spec 文件解析为结构化数据。
+ * 核心能力：Code Fence Masking、标题层级解析、Spec 结构提取。
+ * 参考：OpenSpec markdown-parser.ts（裁剪版，只保留 Spec 解析）
+ */
+
+import type { Spec, Requirement, Scenario } from './spec-schema.js';
 
 interface Section {
   level: number;
@@ -8,15 +16,8 @@ interface Section {
 }
 
 /**
- * 将 content 中的换行符统一为 \n
- */
-function normalizeContent(content: string): string {
-  return content.replace(/\r\n?/g, '\n');
-}
-
-/**
- * 构建代码围栏掩码，标记属于代码块的行
- * 防止代码块内部的 # 被误识别为标题
+ * 构建代码围栏掩码
+ * 防止代码块内的 # 被误识别为标题
  */
 function buildCodeFenceMask(lines: string[]): boolean[] {
   const mask = new Array(lines.length).fill(false);
@@ -43,46 +44,39 @@ function buildCodeFenceMask(lines: string[]): boolean[] {
 }
 
 function getFenceMarker(line: string): { marker: '`' | '~'; length: number } | null {
-  const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
-  if (!fenceMatch) {
-    return null;
-  }
+  const match = line.match(/^\s*(`{3,}|~{3,})/);
+  if (!match) return null;
   return {
-    marker: fenceMatch[1][0] as '`' | '~',
-    length: fenceMatch[1].length,
+    marker: match[1][0] as '`' | '~',
+    length: match[1].length,
   };
 }
 
 function isClosingFence(
   line: string,
-  activeFence: { marker: '`' | '~'; length: number },
+  activeFence: { marker: '`' | '~'; length: number }
 ): boolean {
-  const fenceMatch = line.match(/^\s*(`{3,}|~{3,})\s*$/);
+  const match = line.match(/^\s*(`{3,}|~{3,})\s*$/);
   return Boolean(
-    fenceMatch &&
-      fenceMatch[1][0] === activeFence.marker &&
-      fenceMatch[1].length >= activeFence.length,
+    match && match[1][0] === activeFence.marker && match[1].length >= activeFence.length
   );
 }
 
 /**
- * 解析 Markdown 内容为层级 Section 树
+ * 解析 Markdown 标题层级结构
  */
-function parseSections(lines: string[], codeFenceLineMask: boolean[]): Section[] {
+function parseSections(lines: string[], codeFenceMask: boolean[]): Section[] {
   const sections: Section[] = [];
   const stack: Section[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (codeFenceLineMask[i]) {
-      continue;
-    }
-    const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (codeFenceMask[i]) continue;
 
+    const headerMatch = lines[i].match(/^(#{1,6})\s+(.+)$/);
     if (headerMatch) {
       const level = headerMatch[1].length;
       const title = headerMatch[2].trim();
-      const content = getContentUntilNextHeader(lines, codeFenceLineMask, i + 1, level);
+      const content = getContentUntilNextHeader(lines, codeFenceMask, i + 1, level);
 
       const section: Section = { level, title, content, children: [] };
 
@@ -105,83 +99,72 @@ function parseSections(lines: string[], codeFenceLineMask: boolean[]): Section[]
 
 function getContentUntilNextHeader(
   lines: string[],
-  codeFenceLineMask: boolean[],
+  codeFenceMask: boolean[],
   startLine: number,
-  currentLevel: number,
+  currentLevel: number
 ): string {
   const contentLines: string[] = [];
 
   for (let i = startLine; i < lines.length; i++) {
-    const line = lines[i];
-    const headerMatch = codeFenceLineMask[i] ? null : line.match(/^(#{1,6})\s+/);
-
-    if (headerMatch && headerMatch[1].length <= currentLevel) {
-      break;
+    if (codeFenceMask[i]) {
+      contentLines.push(lines[i]);
+      continue;
     }
 
-    contentLines.push(line);
+    const headerMatch = lines[i].match(/^(#{1,6})\s+/);
+    if (headerMatch && headerMatch[1].length <= currentLevel) break;
+
+    contentLines.push(lines[i]);
   }
 
   return contentLines.join('\n').trim();
 }
 
-/**
- * 在 Section 树中按标题名递归查找
- */
 function findSection(sections: Section[], title: string): Section | undefined {
   for (const section of sections) {
-    if (section.title.toLowerCase() === title.toLowerCase()) {
-      return section;
-    }
+    if (section.title.toLowerCase() === title.toLowerCase()) return section;
     const child = findSection(section.children, title);
-    if (child) {
-      return child;
-    }
+    if (child) return child;
   }
   return undefined;
 }
 
-/**
- * 从标题中提取冒号后的名称
- * 例如 "Requirement: User Login" -> "User Login"
- *      "Scenario: Valid credentials" -> "Valid credentials"
- * 如果没有冒号则返回完整标题
- */
-function extractNameFromTitle(title: string): string {
-  const colonIndex = title.indexOf(':');
-  if (colonIndex !== -1) {
-    return title.substring(colonIndex + 1).trim();
-  }
-  return title.trim();
-}
+function parseRequirements(section: Section): Requirement[] {
+  const requirements: Requirement[] = [];
 
-/**
- * 从需求 Section 的直接内容（不包含子 Section）中提取需求文本
- */
-function extractRequirementText(section: Section): string {
-  if (!section.content.trim()) {
-    return '';
-  }
-  const lines = section.content.split('\n');
-  const contentBeforeChildren: string[] = [];
+  for (const child of section.children) {
+    let text = child.title;
 
-  for (const line of lines) {
-    if (line.trim().startsWith('#')) {
-      break;
+    if (child.content.trim()) {
+      const lines = child.content.split('\n');
+      const contentBeforeChildren: string[] = [];
+
+      for (const line of lines) {
+        if (line.trim().startsWith('#')) break;
+        contentBeforeChildren.push(line);
+      }
+
+      const directContent = contentBeforeChildren.join('\n').trim();
+      if (directContent) {
+        const firstLine = directContent.split('\n').find(l => l.trim());
+        if (firstLine) text = firstLine.trim();
+      }
     }
-    contentBeforeChildren.push(line);
+
+    const scenarios = parseScenarios(child);
+    requirements.push({ name: child.title, text, scenarios });
   }
 
-  return contentBeforeChildren.join('\n').trim();
+  return requirements;
 }
 
-function parseScenarios(requirementSection: Section): { name: string; rawText: string }[] {
-  const scenarios: { name: string; rawText: string }[] = [];
+function parseScenarios(section: Section): Scenario[] {
+  const scenarios: Scenario[] = [];
 
-  for (const child of requirementSection.children) {
+  for (const child of section.children) {
     if (child.content.trim()) {
       scenarios.push({
-        name: extractNameFromTitle(child.title),
+        name: child.title,
         rawText: child.content,
       });
     }
@@ -190,47 +173,19 @@ function parseScenarios(requirementSection: Section): { name: string; rawText: s
   return scenarios;
 }
 
-function parseRequirements(section: Section): { name: string; text: string; scenarios: { name: string; rawText: string }[] }[] {
-  const requirements: { name: string; text: string; scenarios: { name: string; rawText: string }[] }[] = [];
-
-  for (const child of section.children) {
-    const name = extractNameFromTitle(child.title);
-    const text = extractRequirementText(child) || name;
-    const scenarios = parseScenarios(child);
-
-    requirements.push({ name, text, scenarios });
-  }
-
-  return requirements;
-}
-
-/**
- * 解析 Markdown 格式的 Spec 内容，返回符合 SpecSchema 的 Spec 对象
- *
- * 预期的 Markdown 结构：
- *   ## Purpose
- *   ...概述内容...
- *   ## Requirements
- *   ### Requirement: 需求名称
- *   包含 SHALL 或 MUST 的需求描述
- *   #### Scenario: 场景名称
- *   场景原始文本
- *
- * @param content Markdown 文本内容
- * @param name 规格名称
- */
 export function parseSpec(content: string, name: string): Spec {
-  const normalized = normalizeContent(content);
+  const normalized = content.replace(/\r\n?/g, '\n');
   const lines = normalized.split('\n');
-  const codeFenceLineMask = buildCodeFenceMask(lines);
-  const sections = parseSections(lines, codeFenceLineMask);
+  const codeFenceMask = buildCodeFenceMask(lines);
+  const sections = parseSections(lines, codeFenceMask);
 
   const purposeSection = findSection(sections, 'Purpose');
+  const requirementsSection = findSection(sections, 'Requirements');
+
   if (!purposeSection) {
     throw new Error('Spec must have a Purpose section');
   }
 
-  const requirementsSection = findSection(sections, 'Requirements');
   if (!requirementsSection) {
     throw new Error('Spec must have a Requirements section');
   }
