@@ -306,4 +306,48 @@ program
     console.log(`\n共 ${snapshots.length} 个历史版本`);
   });
 
+program
+  .command('uninstall')
+  .description('移除 superSpec 生成的所有文件')
+  .option('-y, --yes', '跳过确认提示')
+  .action(async (options: { yes?: boolean }) => {
+    const { getUninstallPreview, uninstallProject } = await import('../core/uninstall.js');
+
+    const cwd = process.cwd();
+    const preview = getUninstallPreview(cwd);
+
+    if (preview.length === 0) {
+      console.log('未检测到 superSpec 文件，无需卸载。');
+      return;
+    }
+
+    console.log('将要删除以下文件：\n');
+    for (const item of preview) {
+      console.log(`  - ${item}`);
+    }
+
+    if (!options.yes) {
+      const readline = await import('readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const answer = await new Promise<string>((resolve) => {
+        rl.question('\n确认卸载？(y/N) ', resolve);
+      });
+      rl.close();
+
+      if (answer.toLowerCase() !== 'y') {
+        console.log('已取消卸载。');
+        return;
+      }
+    }
+
+    const result = uninstallProject(cwd);
+    console.log('\n✅ superSpec 已卸载\n');
+    if (result.removed.length > 0) {
+      console.log('已移除：');
+      for (const item of result.removed) {
+        console.log(`  ${item}`);
+      }
+    }
+  });
+
 program.parse();
