@@ -91,11 +91,7 @@ export function diffSpec(current: Spec, previous: Spec): DiffResult {
       const previousScenario = previousScenarios.get(sName);
       if (!previousScenario) continue;
 
-      if (
-        JSON.stringify(currentScenario.given) !== JSON.stringify(previousScenario.given) ||
-        JSON.stringify(currentScenario.when) !== JSON.stringify(previousScenario.when) ||
-        JSON.stringify(currentScenario.then) !== JSON.stringify(previousScenario.then)
-      ) {
+      if (currentScenario.rawText !== previousScenario.rawText) {
         items.push({
           type: 'MODIFIED',
           section: 'scenario',
