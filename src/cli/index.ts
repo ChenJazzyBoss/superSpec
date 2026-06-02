@@ -51,7 +51,7 @@ program
         console.log(`  ${file}`);
       }
       console.log(`\n配置: 语言=${interactiveOptions.language}, 严格模式=${interactiveOptions.strict}`);
-      console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
+      console.log('\n使用 /generate-spec 开始生成 spec。');
     } else {
       console.log('正在初始化 superSpec...\n');
       const result = initProject(projectRoot, { ci: options.ci });
@@ -63,7 +63,7 @@ program
       for (const file of result.created) {
         console.log(`  ${file}`);
       }
-      console.log('\n使用 /superspec:generate-spec 开始生成 spec。');
+      console.log('\n使用 /generate-spec 开始生成 spec。');
     }
   });
 

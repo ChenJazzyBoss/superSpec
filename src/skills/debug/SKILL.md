@@ -1,5 +1,5 @@
 ---
-name: superspec:debug
+name: debug
 description: spec 感知的系统化调试流程
 ---
 

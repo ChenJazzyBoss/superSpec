@@ -63,8 +63,8 @@ const DIRECTORIES = [
   '.superspec/specs',
   '.claude',
   '.claude/skills',
-  '.claude/skills/superspec:generate-spec',
-  '.claude/skills/superspec:validate-spec',
+  '.claude/skills/generate-spec',
+  '.claude/skills/validate-spec',
   '.claude/hooks',
 ];
 
@@ -83,12 +83,12 @@ const FILE_COPIES: [string, string][] = [
     '.claude/hooks/session-start',
   ],
   [
-    'src/skills/superspec:generate-spec/SKILL.md',
-    '.claude/skills/superspec:generate-spec/SKILL.md',
+    'src/skills/generate-spec/SKILL.md',
+    '.claude/skills/generate-spec/SKILL.md',
   ],
   [
-    'src/skills/superspec:validate-spec/SKILL.md',
-    '.claude/skills/superspec:validate-spec/SKILL.md',
+    'src/skills/validate-spec/SKILL.md',
+    '.claude/skills/validate-spec/SKILL.md',
   ],
   [
     'dist/scripts/validate.js',
@@ -169,14 +169,14 @@ export function initProject(projectRoot: string, options: InitOptions = {}): {
 
   // 1. 创建目录结构
   for (const dir of DIRECTORIES) {
-    const fullPath = join(projectRoot, toFsPath(dir));
+    const fullPath = join(projectRoot, dir);
     mkdirSync(fullPath, { recursive: true });
   }
 
   // 2. 复制文件
   for (const [srcRel, destRel] of FILE_COPIES) {
-    const srcPath = join(SUPERSPEC_ROOT, toFsPath(srcRel));
-    const destPath = join(projectRoot, toFsPath(destRel));
+    const srcPath = join(SUPERSPEC_ROOT, srcRel);
+    const destPath = join(projectRoot, destRel);
 
     if (!existsSync(srcPath)) {
       console.warn(`警告: 源文件不存在，跳过: ${srcRel}`);

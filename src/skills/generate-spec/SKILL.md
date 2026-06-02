@@ -1,5 +1,5 @@
 ---
-name: superspec:generate-spec
+name: generate-spec
 description: 当用户提出新功能需求或修改需求时使用，在编写任何代码之前
 ---
 

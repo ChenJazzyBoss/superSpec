@@ -1,5 +1,5 @@
 ---
-name: superspec:update-spec
+name: update-spec
 description: 当用户需要修改已有的 spec 文件时使用，生成增量变更描述并应用
 ---
 

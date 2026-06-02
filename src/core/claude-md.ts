@@ -24,8 +24,8 @@ function generateContext(): string {
 
 ### 可用技能
 
-- \`/superspec:generate-spec\` — 生成新的 spec 文件
-- \`/superspec:validate-spec\` — 校验 spec 文件
+- \`/generate-spec\` — 生成新的 spec 文件
+- \`/validate-spec\` — 校验 spec 文件
 
 ### 校验命令
 

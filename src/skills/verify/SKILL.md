@@ -1,5 +1,5 @@
 ---
-name: superspec:verify
+name: verify
 description: 证据驱动的完成声明，禁止无验证的结论
 ---
 

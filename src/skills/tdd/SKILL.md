@@ -1,5 +1,5 @@
 ---
-name: superspec:tdd
+name: tdd
 description: spec 感知的测试驱动开发流程
 ---
 

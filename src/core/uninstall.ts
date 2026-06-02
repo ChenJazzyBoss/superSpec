@@ -14,8 +14,20 @@ import { join } from 'path';
 const SENTINEL_BEGIN = '<!-- superspec:begin -->';
 const SENTINEL_END = '<!-- superspec:end -->';
 
-/** superspec 相关的 skill 目录名前缀 */
-const SUPERSPEC_SKILL_PREFIX = 'superspec:';
+/** superspec 内置技能目录名列表 */
+const SUPERSPEC_SKILLS = [
+  'generate-spec',
+  'validate-spec',
+  'generate-test',
+  'brainstorm',
+  'debug',
+  'tdd',
+  'verify',
+  'update-spec',
+  'write-plan',
+  'archive',
+  'subagent-dev',
+];
 
 /** superspec 相关的 hooks 配置 */
 const SUPERSPEC_HOOKS = ['hooks.json', 'session-start'];
@@ -59,7 +71,7 @@ function removeClaudeConfig(projectRoot: string): string[] {
   const skillsDir = join(claudeDir, 'skills');
   if (existsSync(skillsDir)) {
     for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
-      if (entry.isDirectory() && entry.name.startsWith(SUPERSPEC_SKILL_PREFIX)) {
+      if (entry.isDirectory() && SUPERSPEC_SKILLS.includes(entry.name)) {
         rmSync(join(skillsDir, entry.name), { recursive: true });
         removed.push(`.claude/skills/${entry.name}`);
       }
@@ -155,7 +167,7 @@ export function getUninstallPreview(projectRoot: string): string[] {
     const skillsDir = join(claudeDir, 'skills');
     if (existsSync(skillsDir)) {
       for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
-        if (entry.isDirectory() && entry.name.startsWith(SUPERSPEC_SKILL_PREFIX)) {
+        if (entry.isDirectory() && SUPERSPEC_SKILLS.includes(entry.name)) {
           preview.push(`.claude/skills/${entry.name}`);
         }
       }

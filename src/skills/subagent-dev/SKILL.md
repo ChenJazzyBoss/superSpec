@@ -1,5 +1,5 @@
 ---
-name: superspec:subagent-dev
+name: subagent-dev
 description: 子代理驱动的开发流程，每个任务包含双重 review
 ---
 

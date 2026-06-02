@@ -1,5 +1,5 @@
 ---
-name: superspec:archive
+name: archive
 description: 归档完成的变更，合并到主 spec
 ---
 

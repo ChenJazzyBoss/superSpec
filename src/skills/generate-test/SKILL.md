@@ -1,5 +1,5 @@
 ---
-name: superspec:generate-test
+name: generate-test
 description: 当用户需要根据 spec 生成测试代码骨架时使用
 ---
 

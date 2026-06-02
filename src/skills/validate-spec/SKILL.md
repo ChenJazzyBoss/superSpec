@@ -1,5 +1,5 @@
 ---
-name: superspec:validate-spec
+name: validate-spec
 description: 在修改 spec 文件后使用，确保 spec 质量符合标准
 ---
 

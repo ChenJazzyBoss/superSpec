@@ -1,5 +1,5 @@
 ---
-name: superspec:brainstorm
+name: brainstorm
 description: 通过提问收集需求，生成结构化 spec
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: superspec:write-plan
+name: write-plan
 description: 将 spec 转换为详细实现计划
 ---
 
