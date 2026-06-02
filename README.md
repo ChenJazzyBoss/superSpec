@@ -229,6 +229,49 @@ superspec uninstall       # 交互确认
 superspec uninstall -y    # 跳过确认
 ```
 
+## v3 功能
+
+### AI 行为层技能
+
+v3 引入了 7 个方法论技能，补全 AI 行为层。
+
+| 技能 | 用途 |
+|------|------|
+| `superspec:brainstorm` | 通过提问收集需求，生成结构化 spec |
+| `superspec:write-plan` | 将 spec 转换为详细实现计划 |
+| `superspec:verify` | 证据驱动的完成验证，禁止无验证的结论 |
+| `superspec:tdd` | spec 感知的测试驱动开发 |
+| `superspec:debug` | spec 感知的系统化调试 |
+| `superspec:subagent-dev` | 子代理驱动开发，每个任务双 review |
+| `superspec:archive` | 变更归档流程 |
+
+### 归档系统
+
+管理变更的完整生命周期：变更 → 归档 → 审计记录。
+
+```bash
+# 列出进行中的变更
+superspec changes
+
+# 归档完成的变更
+superspec archive <name>
+```
+
+变更目录结构：
+
+```
+.superspec/
+├── changes/                 # 进行中的变更
+│   └── <name>/
+│       ├── delta.json       # 变更描述
+│       └── metadata.yaml    # 元数据
+└── changes/archive/         # 已归档的变更
+    └── YYYY-MM-DD-<name>/
+        ├── delta.json
+        ├── metadata.yaml
+        └── merged-spec.md   # 合并后的快照
+```
+
 ## 开发
 
 ```bash
