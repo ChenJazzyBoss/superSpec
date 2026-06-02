@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "node build.js",
+    "bundle-validate": "node scripts/bundle-validate.js",
     "test": "vitest run",
     "dev": "tsc --watch"
   },
