@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# superSpec session-start hook
+# 在 Claude Code 启动时注入项目上下文
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SUPERSPEC_DIR="$PROJECT_ROOT/.superspec"
+
+# 统计 spec 数量
+SPEC_COUNT=0
+SPEC_LIST=""
+if [ -d "$SUPERSPEC_DIR/specs" ]; then
+  for dir in "$SUPERSPEC_DIR/specs"/*/; do
+    if [ -d "$dir" ] && [ -f "$dir/spec.md" ]; then
+      SPEC_COUNT=$((SPEC_COUNT + 1))
+      SPEC_NAME=$(basename "$dir")
+      SPEC_LIST="$SPEC_LIST\n  - $SPEC_NAME"
+    fi
+  done
+fi
+
+# 输出 JSON 格式的上下文
+cat << EOF
+{
+  "hookSpecificOutput": {
+    "additionalContext": "## superSpec 项目上下文\n\n- 工具: superSpec v1.0.0\n- spec 数量: ${SPEC_COUNT} 个\n- 校验命令: \`node .superspec/scripts/validate.js <spec-path>\`\n- 生成 spec: 使用 /superspec:generate-spec 技能\n- 校验 spec: 使用 /superspec:validate-spec 技能\n\n当前已有的 spec:${SPEC_LIST}\n"
+  }
+}
+EOF
