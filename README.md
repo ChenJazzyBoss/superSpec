@@ -43,18 +43,20 @@ flowchart LR
 ## Quick start
 
 ```bash
-# Clone and build
-git clone <repo-url> superspec && cd superspec
+# 1. Clone and build superspec
+git clone https://github.com/ChenJazzyBoss/superSpec.git
+cd superSpec
 npm install && npm run build
 
-# Initialize in your project
-node bin/superspec.js init
+# 2. Go to YOUR project and initialize
+cd /path/to/your-project
+node /path/to/superSpec/bin/superspec.js init
 ```
 
 This creates `.superspec/` and `.claude/` in your project. Then in Claude Code:
 
 ```
-/superspec:generate-spec
+/generate-spec
 ```
 
 Claude will ask you questions, generate a structured spec, and validate it — before writing any code.

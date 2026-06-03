@@ -43,12 +43,14 @@ flowchart LR
 ## 快速开始
 
 ```bash
-# 克隆并构建
-git clone <repo-url> superspec && cd superspec
+# 1. 克隆并构建 superspec
+git clone https://github.com/ChenJazzyBoss/superSpec.git
+cd superSpec
 npm install && npm run build
 
-# 在你的项目中初始化
-node bin/superspec.js init
+# 2. 进入你的项目，执行初始化
+cd /path/to/your-project
+node /path/to/superSpec/bin/superspec.js init
 ```
 
 这会在你的项目中创建 `.superspec/` 和 `.claude/`。然后在 Claude Code 中：
