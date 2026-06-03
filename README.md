@@ -34,23 +34,10 @@ Three days later you discover:
 superSpec sits between your intent and Claude's code. It forces a structured spec to exist *before* any code is written, then validates that the code actually matches.
 
 ```mermaid
-flowchart TB
-    User["🗣️ You: \"Add batch export\""]
-    SS["📋 superSpec"]
-    Gen["generate-spec<br/>Structured spec"]
-    Val["validate-spec<br/>Check completeness"]
-    Plan["write-plan<br/>Implementation plan"]
-    Code["💻 Claude writes code<br/>that actually matches your requirements"]
-
-    User --> SS
-    SS --> Gen
-    Gen --> Val
-    Val --> Plan
-    Plan --> Code
-
-    style User fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style SS fill:#fff3e0,stroke:#f57c00,color:#e65100
-    style Code fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+flowchart LR
+    You["You"] -- batch export --> SS["superSpec"]
+    SS -- spec --> Claude["Claude Code"]
+    Claude -- code --> You
 ```
 
 ## Quick start
@@ -178,20 +165,7 @@ Changes are recorded. Specs grow. History is preserved.
 
 ```mermaid
 flowchart LR
-    A["💡 brainstorm"] --> B["📋 generate-spec"]
-    B --> C["✅ validate-spec"]
-    C --> D["📝 write-plan"]
-    D --> E["🔨 implement"]
-    E --> F["🔍 verify"]
-    F --> G["📦 archive"]
-
-    style A fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style B fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style C fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
-    style D fill:#fff3e0,stroke:#f57c00,color:#e65100
-    style E fill:#fce4ec,stroke:#c62828,color:#b71c1c
-    style F fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
-    style G fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    brainstorm --> spec --> validate --> plan --> implement --> verify --> archive
 ```
 
 Each stage has pre-conditions, post-conditions, and retry strategies. The pipeline is deterministic — not vibes.

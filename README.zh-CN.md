@@ -34,23 +34,10 @@
 superSpec 卡在你的意图和 Claude 的代码之间。它强制要求在写代码*之前*先有一份结构化的规格说明书，然后校验代码是否真的匹配。
 
 ```mermaid
-flowchart TB
-    User["🗣️ 你说：\"加个批量导出\""]
-    SS["📋 superSpec"]
-    Gen["generate-spec<br/>生成结构化 spec"]
-    Val["validate-spec<br/>检查完整性"]
-    Plan["write-plan<br/>创建实现计划"]
-    Code["💻 Claude 写出真正符合你需求的代码"]
-
-    User --> SS
-    SS --> Gen
-    Gen --> Val
-    Val --> Plan
-    Plan --> Code
-
-    style User fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style SS fill:#fff3e0,stroke:#f57c00,color:#e65100
-    style Code fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+flowchart LR
+    You["你"] -- 批量导出 --> SS["superSpec"]
+    SS -- spec --> Claude["Claude Code"]
+    Claude -- 代码 --> You
 ```
 
 ## 快速开始
@@ -178,20 +165,7 @@ Claude 创建详细计划，然后每个任务双重 review 实现。
 
 ```mermaid
 flowchart LR
-    A["💡 brainstorm<br/>收集需求"] --> B["📋 generate-spec<br/>生成 spec"]
-    B --> C["✅ validate-spec<br/>校验质量"]
-    C --> D["📝 write-plan<br/>拆分任务"]
-    D --> E["🔨 implement<br/>写代码"]
-    E --> F["🔍 verify<br/>证明有效"]
-    F --> G["📦 archive<br/>记录变更"]
-
-    style A fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style B fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    style C fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
-    style D fill:#fff3e0,stroke:#f57c00,color:#e65100
-    style E fill:#fce4ec,stroke:#c62828,color:#b71c1c
-    style F fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
-    style G fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    brainstorm --> spec --> validate --> plan --> implement --> verify --> archive
 ```
 
 每个阶段有前置条件、后置条件、重试策略。管道是确定性的——不是靠感觉。
