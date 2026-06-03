@@ -3,6 +3,36 @@
 ## 优先级
 **P1** — Change Workflow 是 spec 变更生命周期管理的核心功能，让每次变更可追溯、可审计、可回滚。依赖 Delta Spec 的合并能力，应在 Delta Spec 之后实现。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  cicd["ci-cd-pipeline ✅"] --> change["change-workflow"]
+  delta["delta-spec"] --> change
+
+  classDef current fill:#fff3cd,stroke:#ffc107,color:#856404
+  class change current
+```
+
+> change-workflow 依赖 delta-spec 的合并能力和 ci-cd-pipeline。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["状态机"] --> T2["proposal 模板"]
+  T3["tasks 模板"] --> T4["propose 命令"]
+  T1 --> T4
+  T2 --> T4
+  T4 --> T5["tasks 管理"]
+  T5 --> T6["start 命令"]
+  T6 --> T7["apply 命令"]
+  T7 --> T8["sync 命令"]
+  T8 --> T9["archive 增强"]
+  T7 --> T10["状态回退"]
+  T9 --> T11["集成测试"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

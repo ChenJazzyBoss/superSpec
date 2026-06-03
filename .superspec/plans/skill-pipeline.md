@@ -3,6 +3,40 @@
 ## 优先级
 **P1** — 技能管道将松散的技能集合进化为结构化工作流引擎，提升用户体验和自动化程度。依赖 XML 标签系统和 Anti-Rationalization 机制，应在两者完成后再实现。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  xml["xml-tags"] --> skill["skill-pipeline"]
+  anti["anti-rationalization"] --> skill
+
+  classDef current fill:#d4edda,stroke:#28a745,color:#155724
+  class skill current
+```
+
+> skill-pipeline 依赖 xml-tags 和 anti-rationalization，是最复杂的集成点。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["类型系统"] --> T2["工作流配置"]
+  T1 --> T3["上下文管理器"]
+  T1 --> T7["并行执行"]
+  T1 --> T8["重试策略"]
+  T2 --> T4["条件检查器"]
+  T2 --> T6["执行引擎"]
+  T3 --> T4
+  T3 --> T5["状态传递"]
+  T4 --> T6
+  T5 --> T6
+  T6 --> T9["集成重试/并行"]
+  T7 --> T9
+  T8 --> T9
+  T9 --> T10["CLI 命令"]
+  T10 --> T11["SKILL.md 元数据"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

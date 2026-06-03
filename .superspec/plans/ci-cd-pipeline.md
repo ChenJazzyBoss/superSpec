@@ -3,6 +3,37 @@
 ## 优先级
 **P0** — CI/CD 是项目质量保障的基础设施，所有后续功能开发都依赖自动化的测试和发布流程。没有 CI/CD，代码质量无法保证，发布流程容易出错。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  cicd["ci-cd-pipeline ✅"] --> delta["delta-spec"]
+  cicd --> change["change-workflow"]
+  cicd --> config["config-layers"]
+  cicd --> upstream["upstream-alignment"]
+  cicd --> xml["xml-tags"]
+  cicd --> anti["anti-rationalization"]
+  cicd --> skill["skill-pipeline"]
+```
+
+> CI/CD 是所有其他优化方向的前置依赖。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["PR 检查工作流"] --> T2["多平台矩阵"]
+  T1 --> T3["失败反馈"]
+  T1 --> T4["覆盖率报告"]
+  T1 --> T5["发布工作流"]
+  T5 --> T6["失败通知"]
+  T5 --> T7["产物检查"]
+  T5 --> T8["安全扫描"]
+
+  classDef done fill:#d4edda,stroke:#28a745,color:#155724
+  class T1,T2,T3,T5,T6,T7 done
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

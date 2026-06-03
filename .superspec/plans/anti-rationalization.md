@@ -3,6 +3,37 @@
 ## 优先级
 **P0** — 反合理化是 superSpec 所有技能文件的质量保障基础。AI 跳步行为会直接导致 spec 质量不可控，所有其他功能（Delta Spec、Change Workflow 等）的技能文件都需要反合理化机制保护。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  xml["xml-tags"] --> anti["anti-rationalization"]
+  anti --> skill["skill-pipeline"]
+
+  classDef current fill:#f8d7da,stroke:#dc3545,color:#721c24
+  class anti current
+```
+
+> anti-rationalization 依赖 xml-tags 的标签解析，被 skill-pipeline 依赖。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["Schema/加载器"] --> T2["红线检测"]
+  T1 --> T3["检查清单"]
+  T1 --> T4["XML Gates"]
+  T1 --> T5["证据验证"]
+  T6["模式库"] --> T7["Skill Guard"]
+  T2 --> T7
+  T3 --> T7
+  T4 --> T7
+  T5 --> T7
+  T7 --> T9["init 集成"]
+  T1 --> T8["技能升级"]
+  T9 --> T10["集成测试"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

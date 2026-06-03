@@ -3,6 +3,34 @@
 ## 优先级
 **P1** — 配置分层系统为多环境、多用户、多变更并行场景提供灵活的配置覆盖能力。对团队协作和 CI/CD 流水线至关重要，但不影响单用户基本使用。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  cicd["ci-cd-pipeline ✅"] --> config["config-layers"]
+
+  classDef current fill:#fff3cd,stroke:#ffc107,color:#856404
+  class config current
+```
+
+> config-layers 是独立模块，仅依赖 ci-cd-pipeline。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["配置 Schema"] --> T2["深度合并策略"]
+  T1 --> T5["Schema 校验"]
+  T3["路径常量"] --> T4["配置加载器"]
+  T4 --> T2
+  T2 --> T6["合并流水线"]
+  T6 --> T7["CLI flag 注入"]
+  T6 --> T8["迁移命令"]
+  T8 --> T9["备份与废弃检测"]
+  T7 --> T10["集成测试"]
+  T9 --> T10
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

@@ -3,6 +3,33 @@
 ## 优先级
 **P0** — XML 标签是 Anti-Rationalization 的核心基础设施，HARD-GATE、CHECKLIST 等标签的解析和执行是反合理化机制的前提。同时 XML 标签也是所有 SKILL.md 文件的约束基础。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  xml["xml-tags"] --> anti["anti-rationalization"]
+  xml --> skill["skill-pipeline"]
+  anti --> skill
+
+  classDef current fill:#fff3cd,stroke:#ffc107,color:#856404
+  class xml current
+```
+
+> xml-tags 被 anti-rationalization 和 skill-pipeline 依赖。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["类型系统"] --> T2["标签解析器"]
+  T1 --> T4["行为约束引擎"]
+  T2 --> T3["格式验证器"]
+  T2 --> T5["Markdown 兼容层"]
+  T3 --> T6["validate-skill CLI"]
+  T6 --> T7["Validator 集成"]
+  T7 --> T8["SKILL.md 迁移验证"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

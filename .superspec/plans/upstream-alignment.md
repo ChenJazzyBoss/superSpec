@@ -3,6 +3,40 @@
 ## 优先级
 **P2** — 上游对齐检测是长期维护质量的保障机制，防止规范漂移。不影响核心功能使用，但对项目可持续性至关重要。可在核心功能稳定后实现。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  cicd["ci-cd-pipeline ✅"] --> upstream["upstream-alignment"]
+
+  classDef current fill:#e2e3e5,stroke:#6c757d,color:#383d41
+  class upstream current
+```
+
+> upstream-alignment 是最低优先级，仅依赖 ci-cd-pipeline。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["upstream Schema"] --> T2["配置解析"]
+  T1 --> T7["overrides 加载"]
+  T2 --> T3["Git 获取"]
+  T2 --> T4["HTTP 获取"]
+  T3 --> T5["缓存管理"]
+  T4 --> T5
+  T5 --> T6["差异检测调度"]
+  T6 --> T8["校验规则检测"]
+  T6 --> T9["frontmatter 检测"]
+  T6 --> T10["hook 检测"]
+  T8 --> T11["差异分类"]
+  T9 --> T11
+  T10 --> T11
+  T11 --> T12["报告生成"]
+  T12 --> T13["CI 集成"]
+  T13 --> T14["端到端测试"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |

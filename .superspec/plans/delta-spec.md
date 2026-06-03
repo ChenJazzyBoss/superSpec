@@ -3,6 +3,36 @@
 ## 优先级
 **P1** — Delta Spec 是变更工作流（Change Workflow）的基础能力，支撑增量变更描述、冲突检测和合并算法。Change Workflow 的 sync 命令依赖 Delta Spec 的合并能力。在 CI/CD 建立之后优先实现。
 
+## 依赖关系
+
+```mermaid
+flowchart LR
+  cicd["ci-cd-pipeline ✅"] --> delta["delta-spec"]
+  delta --> change["change-workflow"]
+
+  classDef current fill:#fff3cd,stroke:#ffc107,color:#856404
+  class delta current
+```
+
+> delta-spec 被 change-workflow 依赖，依赖 ci-cd-pipeline。
+
+## 任务依赖图
+
+```mermaid
+flowchart LR
+  T1["类型定义"] --> T2["JSON Schema"]
+  T1 --> T4["语义校验"]
+  T1 --> T5["冲突检测"]
+  T2 --> T3["格式校验"]
+  T3 --> T8["解析集成"]
+  T4 --> T9["API 集成"]
+  T5 --> T6["合并算法"]
+  T6 --> T7["回滚机制"]
+  T8 --> T9
+  T7 --> T9
+  T9 --> T10["端到端测试"]
+```
+
 ## 任务分解
 
 | 序号 | 任务名 | 涉及文件 | 预估工作量 | 前置依赖 |
