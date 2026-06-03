@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { DeltaSpec, DeltaOperation, AddedOperation, ModifiedOperation, RemovedOperation, RenamedOperation } from './types';
-import { validateDeltaFormat } from './validator';
+import { DeltaSpec, DeltaOperation, AddedOperation, ModifiedOperation, RemovedOperation, RenamedOperation } from './types.js';
+import { validateDeltaFormat } from './validator.js';
 
 /**
  * Markdown 章节
@@ -95,9 +95,9 @@ function extractSectionName(sectionPath: string): string {
 function applyAdded(sections: MarkdownSection[], op: AddedOperation): MarkdownSection[] {
   const newContent = op.content;
   const newLines = newContent.split('\n');
-  const headingLine = newLines.find(l => l.match(/^#{1,6}\s+/)) || `## ${extractSectionName(op.path)}`;
+  const headingLine = newLines.find((l: string) => l.match(/^#{1,6}\s+/)) || `## ${extractSectionName(op.path)}`;
   const headingLevel = (headingLine.match(/^(#{1,6})/) || ['##', '##'])[1].length;
-  const bodyLines = newLines.filter(l => !l.match(/^#{1,6}\s+/));
+  const bodyLines = newLines.filter((l: string) => !l.match(/^#{1,6}\s+/));
   const body = bodyLines.join('\n').trim() + '\n';
 
   const newSection: MarkdownSection = {
@@ -135,10 +135,10 @@ function applyModified(sections: MarkdownSection[], op: ModifiedOperation): Mark
 
   // after 是完整的新章节内容（包含标题）
   const afterLines = op.after.split('\n');
-  const headingLine = afterLines.find(l => l.match(/^#{1,6}\s+/));
+  const headingLine = afterLines.find((l: string) => l.match(/^#{1,6}\s+/));
   if (headingLine) {
     const headingLevel = (headingLine.match(/^(#{1,6})/) || ['##', '##'])[1].length;
-    const bodyLines = afterLines.filter(l => !l.match(/^#{1,6}\s+/));
+    const bodyLines = afterLines.filter((l: string) => !l.match(/^#{1,6}\s+/));
     newSections[targetIndex] = {
       heading: headingLine,
       level: headingLevel,
@@ -212,7 +212,7 @@ function applyRenamed(sections: MarkdownSection[], op: RenamedOperation): Markdo
 export function applyDeltaToMarkdown(specPath: string, delta: DeltaSpec): string {
   const validation = validateDeltaFormat(delta);
   if (!validation.valid) {
-    throw new Error(`Delta 格式校验失败: ${validation.errors.map(e => e.message).join(', ')}`);
+    throw new Error(`Delta 格式校验失败: ${validation.errors.join(', ')}`);
   }
 
   const content = fs.readFileSync(specPath, 'utf-8');
@@ -257,14 +257,14 @@ export function mergeDeltaToSpecs(
   });
 
   if (!targetFile) {
-    if (delta.operations.some(op => op.operation === 'REMOVED' || op.operation === 'MODIFIED' || op.operation === 'RENAMED')) {
+    if (delta.operations.some((op: DeltaOperation) => op.operation === 'REMOVED' || op.operation === 'MODIFIED' || op.operation === 'RENAMED')) {
       throw new Error(`目标 spec "${delta.baseSpec}" 不存在，但 delta 包含修改/删除/重命名操作`);
     }
 
     const newSpecPath = path.join(specsDir, `${baseName}.md`);
     const addedContent = delta.operations
       .filter((op): op is AddedOperation => op.operation === 'ADDED')
-      .map(op => op.content)
+      .map((op: AddedOperation) => op.content)
       .join('\n\n');
 
     return {
