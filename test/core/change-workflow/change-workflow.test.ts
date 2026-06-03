@@ -316,9 +316,10 @@ describe('ChangeManager — listChanges', () => {
     expect(emptyManager.listChanges()).toEqual([]);
   });
 
-  it('变更按创建时间倒序排列', () => {
+  it('变更按创建时间倒序排列', async () => {
     const first = manager.createChange('先创建', '描述');
-    // 确保时间戳不同
+    // 等待 10ms 确保时间戳不同
+    await new Promise(resolve => setTimeout(resolve, 10));
     const second = manager.createChange('后创建', '描述');
     const list = manager.listChanges();
     expect(list[0].id).toBe(second.id);

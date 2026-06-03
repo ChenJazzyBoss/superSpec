@@ -139,7 +139,12 @@ export class ChangeManager {
         }
       }
     }
-    return changes.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return changes.sort((a, b) => {
+      const timeDiff = b.createdAt.localeCompare(a.createdAt);
+      if (timeDiff !== 0) return timeDiff;
+      // 相同时间戳时按 ID 降序（ID 包含随机 hash，保证稳定性）
+      return b.id.localeCompare(a.id);
+    });
   }
 
   /**
