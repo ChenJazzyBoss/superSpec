@@ -51,14 +51,29 @@ Then 系统提示"无数据可导出"
 
 ### 安装
 
+> **注意**：`superspec` 包名已被占用（v0.1.6），发布时需要使用 scoped name（如 `@company/superspec`）。
+
 ```bash
-npm install -g superspec
+# 克隆仓库
+git clone <repo-url> superspec
+cd superspec
+
+# 安装依赖并构建
+npm install
+npm run build
+
+# 链接到全局（可选）
+npm link
 ```
 
 ### 初始化项目
 
 ```bash
-npx superspec init
+# 如果已 npm link
+superspec init
+
+# 或直接运行
+node bin/superspec.js init
 ```
 
 这会在当前目录创建：
