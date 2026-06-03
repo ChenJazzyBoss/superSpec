@@ -23,3 +23,11 @@ export type { ValidationResult } from './validator.js';
 export { detectConflicts } from './conflict-detector.js';
 
 export { applyDelta } from './merger.js';
+
+export {
+  parseMarkdownSections,
+  findSection,
+  assembleMarkdown,
+  applyDeltaToMarkdown,
+  mergeDeltaToSpecs,
+} from './markdown-merger.js';
