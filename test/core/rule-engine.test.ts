@@ -174,6 +174,55 @@ describe('规则引擎', () => {
       const result = runRules(spec, [scenarioTypesRule]);
       expect(result.warnings).toHaveLength(0);
     });
+
+    it('否定语境中的"错误"不算 error-case', () => {
+      const spec = makeSpec({
+        requirements: [{
+          name: 'test',
+          text: 'SHALL 支持功能',
+          scenarios: [
+            { name: '正常输出', rawText: 'Given 系统运行，When 校验通过，Then 输出结果' },
+            { name: '无错误输出', rawText: 'Given 系统运行，When 操作完成，Then 不产生任何错误信息' },
+          ],
+        }],
+      });
+      const result = runRules(spec, [scenarioTypesRule]);
+      // 两个都是 happy-path，应该警告类型单一
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].message).toContain('类型单一');
+    });
+
+    it('描述性文本中的"失败"不算 error-case', () => {
+      const spec = makeSpec({
+        requirements: [{
+          name: 'test',
+          text: 'SHALL 支持功能',
+          scenarios: [
+            { name: '正常流程', rawText: 'Given 系统运行，When 操作成功，Then 返回结果' },
+            { name: '异常处理', rawText: 'Given 系统运行，When 捕获异常，Then 输出校验通过结果' },
+          ],
+        }],
+      });
+      const result = runRules(spec, [scenarioTypesRule]);
+      // 两个都是 happy-path，应该警告类型单一
+      expect(result.warnings).toHaveLength(1);
+    });
+
+    it('真正的 error-case 仍然被识别', () => {
+      const spec = makeSpec({
+        requirements: [{
+          name: 'test',
+          text: 'SHALL 支持功能',
+          scenarios: [
+            { name: '正常流程', rawText: 'Given 系统运行，When 操作成功，Then 返回结果' },
+            { name: '密码错误', rawText: 'Given 用户登录，When 密码错误，Then 显示错误提示' },
+          ],
+        }],
+      });
+      const result = runRules(spec, [scenarioTypesRule]);
+      // 覆盖了 happy-path 和 error-case，不应警告
+      expect(result.warnings).toHaveLength(0);
+    });
   });
 
   describe('overview-length 规则', () => {
