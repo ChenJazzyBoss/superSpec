@@ -12,13 +12,15 @@ import type { Spec } from '../spec-schema.js';
 import type { ValidationReport } from '../validator.js';
 
 /** 支持的图表类型 */
-export type DiagramType = 'flowchart' | 'state' | 'decision';
+export type DiagramType = 'flowchart' | 'state' | 'decision' | 'test-coverage' | 'dependency';
 
 /** 图表类型对应的中文标题 */
 const DIAGRAM_TITLES: Record<DiagramType, string> = {
   flowchart: '任务分解图',
   state: '状态流转图',
   decision: '校验决策流程',
+  'test-coverage': '测试覆盖度图',
+  dependency: '依赖关系图',
 };
 
 /**

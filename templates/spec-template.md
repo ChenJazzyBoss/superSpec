@@ -4,6 +4,8 @@
 
 <!-- 至少 50 字描述这个功能的目的和价值，必须让读者理解为什么需要这个功能 -->
 
+<!-- DIAGRAM:flowchart -->
+
 ## Requirements
 
 ### Requirement: <需求名称>

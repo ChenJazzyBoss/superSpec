@@ -11,6 +11,7 @@ export { scenarioTypesRule } from './builtin/scenario-types.js';
 export { overviewLengthRule } from './builtin/overview-length.js';
 export { testabilityRule } from './builtin/testability.js';
 export { recommendedScenariosRule } from './builtin/recommended-scenarios.js';
+export { diagramPresenceRule } from './builtin/diagram-presence.js';
 
 import { requireShallRule } from './builtin/require-shall.js';
 import { minScenariosRule } from './builtin/min-scenarios.js';
@@ -21,6 +22,7 @@ import { scenarioTypesRule } from './builtin/scenario-types.js';
 import { overviewLengthRule } from './builtin/overview-length.js';
 import { testabilityRule } from './builtin/testability.js';
 import { recommendedScenariosRule } from './builtin/recommended-scenarios.js';
+import { diagramPresenceRule } from './builtin/diagram-presence.js';
 import type { Rule } from './types.js';
 
 /**
@@ -36,6 +38,7 @@ export const builtinRules: Rule[] = [
   recommendedScenariosRule,
   noVagueWordsRule,
   scenarioTypesRule,
+  diagramPresenceRule,
   // INFO 级别 - 建议
   overviewLengthRule,
   testabilityRule,
