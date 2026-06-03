@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "description": "AI-native spec management tool for Claude Code",
+  "main": "./dist/index.js",
   "bin": {
     "superspec": "./bin/superspec.js"
   },
   "scripts": {
     "build": "node build.js",
+    "typecheck": "tsc --noEmit",
     "bundle-validate": "node scripts/bundle-validate.js",
     "test": "vitest run",
     "dev": "tsc --watch"

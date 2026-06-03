@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Check build artifacts
+        run: bash scripts/check-dist.sh
+
+      - name: Detect version change
+        id: version
+        run: |
+          PACKAGE_VERSION=$(node -e "const pkg = require('./package.json'); process.stdout.write(pkg.version)")
+          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+          # Fetch latest version from npm registry
+          # If the package doesn't exist yet on npm, treat as new release
+          LATEST_VERSION=$(npm view superspec version 2>/dev/null || echo "0.0.0")
+          echo "latest_version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
+
+          if [ "$PACKAGE_VERSION" = "$LATEST_VERSION" ]; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version $PACKAGE_VERSION is already published. Skipping npm publish."
+          else
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version changed from $LATEST_VERSION to $PACKAGE_VERSION. Will publish."
+          fi
+
+      - name: Publish to npm
+        if: steps.version.outputs.should_publish == 'true'
+        id: publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create release failure issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = context.sha.substring(0, 8);
+            const commitUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release failed for commit ${commitSha}`,
+              body: [
+                `## Release Pipeline Failure`,
+                ``,
+                `**Commit:** [${commitSha}](${commitUrl})`,
+                `**Branch:** ${context.ref}`,
+                `**Workflow Run:** [View logs](${runUrl})`,
+                `**Triggered by:** @${context.actor}`,
+                ``,
+                `### What happened`,
+                `The release workflow failed on the main branch. Please review the workflow logs and fix the issue.`,
+                ``,
+                `### Steps to resolve`,
+                `1. Check the [workflow run logs](${runUrl}) for error details`,
+                `2. Fix the issue and push to main`,
+                `3. Close this issue once resolved`,
+                ``,
+                `> This issue was automatically created by the release workflow.`,
+              ].join('\n'),
+              labels: ['release-failure', 'bug'],
+            });
