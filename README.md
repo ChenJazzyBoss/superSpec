@@ -10,6 +10,8 @@ Turn natural language into executable specifications. Catch AI hallucinations be
 [![Tests](https://img.shields.io/badge/Tests-383%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
+English | [中文](./README.zh-CN.md)
+
 </div>
 
 ---
