@@ -1,0 +1,26 @@
+# Source & dev files
+src/
+test/
+/scripts/
+
+# CI & editor config
+.github/
+.vscode/
+.idea/
+
+# superSpec own config (not needed by end users)
+.superspec/
+.claude/
+
+# Dev config files
+tsconfig.json
+vitest.config.ts
+build.js
+.gitignore
+.gitattributes
+
+# Temp & misc files
+test-spec.md
+*.tgz
+*.log
+.DS_Store

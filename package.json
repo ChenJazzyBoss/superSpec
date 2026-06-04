@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "bundle-validate": "node scripts/bundle-validate.js",
     "test": "vitest run",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build && npm run bundle-validate"
   },
   "engines": {
     "node": ">=20.0.0"
