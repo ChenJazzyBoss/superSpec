@@ -46,7 +46,9 @@ flowchart LR
 # 1. Clone and build superspec
 git clone https://github.com/ChenJazzyBoss/superSpec.git
 cd superSpec
-npm install && npm run build
+npm install
+npm run build
+npm run bundle-validate
 
 # 2. Go to YOUR project and initialize
 cd /path/to/your-project

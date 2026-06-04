@@ -46,7 +46,9 @@ flowchart LR
 # 1. 克隆并构建 superspec
 git clone https://github.com/ChenJazzyBoss/superSpec.git
 cd superSpec
-npm install && npm run build
+npm install
+npm run build
+npm run bundle-validate
 
 # 2. 进入你的项目，执行初始化
 cd /path/to/your-project
