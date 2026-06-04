@@ -33,14 +33,14 @@ When 选择 CSV 格式
 Then 生成 CSV 文件`;
 
   it('校验正确的 spec 返回 valid: true', async () => {
-    const validator = new Validator(false);
+    const validator = new Validator();
     const report = await validator.validateSpecContent('test', validSpec);
     expect(report.valid).toBe(true);
     expect(report.summary.errors).toBe(0);
   });
 
   it('Zod 结构校验捕获类型错误', async () => {
-    const validator = new Validator(false);
+    const validator = new Validator();
     const report = await validator.validateSpecContent('test', invalidSpec);
     expect(report.valid).toBe(false);
     expect(report.issues.some(i => i.message.includes('50'))).toBe(true);
@@ -62,7 +62,7 @@ Given 用户在导出页面
 When 选择 XLSX 格式
 Then 生成 XLSX 文件`;
 
-    const validator = new Validator(false);
+    const validator = new Validator();
     const report = await validator.validateSpecContent('test', spec);
     expect(report.valid).toBe(false);
     expect(report.issues.some(i => i.message.includes('SHALL'))).toBe(true);
@@ -80,7 +80,7 @@ Given 用户在导出页面
 When 选择 CSV 格式
 Then 生成 CSV 文件`;
 
-    const validator = new Validator(false);
+    const validator = new Validator();
     const report = await validator.validateSpecContent('test', spec);
     expect(report.issues.some(i => i.level === 'WARNING' && i.message.includes('场景'))).toBe(true);
   });
@@ -101,14 +101,14 @@ Given 用户在导出页面
 When 选择 XLSX 格式
 Then 生成 XLSX 文件`;
 
-    const validator = new Validator(true);
+    const validator = new Validator({ strictMode: true });
     const report = await validator.validateSpecContent('test', spec);
     expect(report.valid).toBe(false);
     expect(report.summary.warnings).toBeGreaterThan(0);
   });
 
   it('校验报告 JSON 格式正确', async () => {
-    const validator = new Validator(false);
+    const validator = new Validator();
     const report = await validator.validateSpecContent('test', validSpec);
     const json = JSON.stringify(report);
     const parsed = JSON.parse(json);

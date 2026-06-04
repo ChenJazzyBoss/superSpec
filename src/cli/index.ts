@@ -72,11 +72,45 @@ program
   .description('校验 spec 文件')
   .argument('<name>', 'spec 名称或文件路径')
   .option('--strict', '启用严格模式（WARNING 也导致失败）')
-  .action(async (name: string, options: { strict?: boolean }) => {
-    // TODO: 在后续任务中实现
-    console.log(`正在校验: ${name}`);
-    console.log(`严格模式: ${options.strict ? '是' : '否'}`);
-    console.log('（此命令尚未完整实现，敬请期待）');
+  .option('--deep', '启用深度逻辑一致性分析')
+  .action(async (name: string, options: { strict?: boolean; deep?: boolean }) => {
+    const { readFileSync, existsSync } = await import('fs');
+    const { join } = await import('path');
+    const { Validator } = await import('../core/validator.js');
+
+    const cwd = process.cwd();
+
+    // 支持文件路径或 spec 名称两种方式
+    let specPath: string;
+    let specName: string;
+    if (name.endsWith('.md') || name.includes('/') || name.includes('\\')) {
+      specPath = name;
+      specName = name.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/, '') ?? 'unknown';
+    } else {
+      specName = name;
+      specPath = join(cwd, '.superspec', 'specs', name, 'spec.md');
+    }
+
+    if (!existsSync(specPath)) {
+      console.error(`错误: spec 文件不存在 ${specPath}`);
+      process.exit(1);
+    }
+
+    const validator = new Validator({ strictMode: options.strict, deep: options.deep });
+    const report = await validator.validateSpec(specPath, specName);
+
+    // 输出报告
+    const output: Record<string, unknown> = {
+      valid: report.valid,
+      issues: report.issues,
+      summary: report.summary,
+    };
+    if (report.scenarioTypes) {
+      output.scenarioTypes = report.scenarioTypes;
+    }
+    console.log(JSON.stringify(output, null, 2));
+
+    process.exit(report.valid ? 0 : 1);
   });
 
 program
@@ -206,7 +240,7 @@ program
       console.log(`   变更项: ${delta.changes.length}`);
 
       // 自动校验
-      const validator = new Validator(false);
+      const validator = new Validator();
       const report = await validator.validateSpec(specPath, name);
       if (report.valid) {
         console.log('   校验: ✅ 通过');

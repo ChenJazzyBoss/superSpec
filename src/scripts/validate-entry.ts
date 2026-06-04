@@ -27,7 +27,7 @@ async function main() {
     process.exit(1);
   }
 
-  const validator = new Validator(strictMode);
+  const validator = new Validator({ strictMode });
   const report = await validator.validateSpec(specPath);
 
   console.log(JSON.stringify(report, null, 2));

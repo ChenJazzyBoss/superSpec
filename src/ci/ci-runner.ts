@@ -44,7 +44,7 @@ function findSpecFiles(specsDir: string): Array<{ name: string; path: string }> 
 export async function runCi(projectRoot: string, strictMode: boolean = false): Promise<CiSummary> {
   const specsDir = join(projectRoot, '.superspec', 'specs');
   const specFiles = findSpecFiles(specsDir);
-  const validator = new Validator(strictMode);
+  const validator = new Validator({ strictMode });
   const results: CiResult[] = [];
 
   for (const { name, path } of specFiles) {

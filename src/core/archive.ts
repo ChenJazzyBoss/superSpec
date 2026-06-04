@@ -119,7 +119,7 @@ export async function archiveChange(
   }
 
   // 8. 运行校验
-  const validator = new Validator(false);
+  const validator = new Validator();
   const report = await validator.validateSpec(specPath, specName);
   const validationPassed = report.valid;
 
