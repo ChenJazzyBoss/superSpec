@@ -69,9 +69,15 @@ Claude will ask you questions, generate a structured spec, and validate it — b
 
 ✅ **Auto-validation** — 9 built-in rules catch missing scenarios, vague words, and incomplete coverage.
 
-🔄 **Delta changes** — Describe what changed, not the whole file. Merge conflicts become impossible.
+🔍 **Deep analysis** — Optional `--deep` mode detects logical contradictions between scenarios and coverage gaps in requirements.
 
-📊 **Mermaid diagrams** — Auto-generated flowcharts, state diagrams, and test coverage matrices.
+📊 **Auto diagrams** — Add `<!-- DIAGRAM:flowchart -->` to your spec, and Mermaid diagrams are generated and embedded automatically.
+
+🔗 **Source tracking** — Add `<!-- source: src/foo.ts -->` to link specs to code. Get warned when source files change but spec doesn't.
+
+🏷️ **Scenario classification** — Scenarios are auto-tagged as normal/error/boundary. Missing error scenarios trigger warnings.
+
+🔄 **Delta changes** — Describe what changed, not the whole file. Merge conflicts become impossible.
 
 🛡️ **Anti-hallucination** — Red flag tables and checklists prevent Claude from skipping steps or faking completion.
 
@@ -113,12 +119,19 @@ Then system displays error message and logs the issue
 ### 2. Validate
 
 ```bash
+# Basic validation (format + rules + scenario classification)
 node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md
+
+# Deep validation (+ logical consistency analysis)
+node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md --deep
 ```
 
 ```
 ✅ valid: true
    errors: 0, warnings: 0, info: 0
+
+   scenarioTypes:
+     requirements[0]: [normal, error, boundary]
 ```
 
 ### 3. Implement
@@ -144,12 +157,14 @@ Changes are recorded. Specs grow. History is preserved.
 |---------|---------------|
 | 📋 **Spec generation** | Natural language → structured spec with validation |
 | ✅ **9 validation rules** | Catches missing SHALL, vague words, incomplete scenarios |
+| 🔍 **Deep analysis** | `--deep` mode: logical contradiction detection, coverage gap analysis |
+| 📊 **Auto diagrams** | `<!-- DIAGRAM:flowchart/state -->` → Mermaid diagrams embedded automatically |
+| 🔗 **Source tracking** | `<!-- source: path -->` → warns when code changes but spec doesn't |
+| 🏷️ **Scenario classification** | Auto-tags normal/error/boundary scenarios, warns on missing error cases |
 | 🔄 **Delta merge** | Incremental spec changes, no full-file rewrites |
-| 📊 **Mermaid diagrams** | Auto-generated flowcharts and state diagrams |
 | 🛡️ **Anti-hallucination** | Red flags, checklists, evidence verification |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
 | ⚙️ **Config layers** | Global → project → change, with priority merge |
-| 🔍 **Upstream tracking** | Detect drift from OpenSpec/superpowers-zh patterns |
 | 📦 **Archive system** | Full change lifecycle: draft → in-progress → review → done |
 | 🧪 **Test generation** | TypeScript (vitest) and Python (pytest) skeletons |
 | 🔌 **CI integration** | GitHub Actions workflow for PR validation |

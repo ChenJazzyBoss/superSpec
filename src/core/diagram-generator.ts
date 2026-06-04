@@ -19,15 +19,23 @@ const MERMAID_BLOCK_RE = /```mermaid\n[\s\S]*?```/g;
 
 /**
  * 从 spec 内容中提取所有图表标记
+ * 排除反引号内的标记（需求描述中的示例）
  */
 export function extractDiagramMarkers(content: string): DiagramType[] {
   const markers: DiagramType[] = [];
-  let match;
-  const re = new RegExp(DIAGRAM_MARKER_RE.source, 'g');
-  while ((match = re.exec(content)) !== null) {
-    const type = match[1] as DiagramType;
-    if (type === 'flowchart' || type === 'state') {
-      markers.push(type);
+  const lines = content.split('\n');
+
+  for (const line of lines) {
+    // 跳过包含反引号的行（需求描述中的示例）
+    if (line.includes('`')) continue;
+
+    let match;
+    const re = new RegExp(DIAGRAM_MARKER_RE.source, 'g');
+    while ((match = re.exec(line)) !== null) {
+      const type = match[1] as DiagramType;
+      if (type === 'flowchart' || type === 'state') {
+        markers.push(type);
+      }
     }
   }
   return markers;
@@ -80,8 +88,10 @@ function generateStateFromSpec(spec: Spec): string {
  *
  * 规则：
  * 1. 找到 <!-- DIAGRAM:xxx --> 标记
- * 2. 检查标记后面是否已有 Mermaid 代码块
+ * 2. 检查标记后面紧邻的 3 行内是否有 Mermaid 代码块
  * 3. 有则替换，无则在标记后插入
+ *
+ * 只检查标记后紧邻的区域，避免误匹配到需求描述中的 mermaid 示例。
  */
 export function embedDiagrams(content: string, spec: Spec): string {
   let result = content;
@@ -100,8 +110,9 @@ export function embedDiagrams(content: string, spec: Spec): string {
     const markerIndex = result.indexOf(markerMatch[0]);
     const afterMarker = result.slice(markerIndex + markerMatch[0].length);
 
-    // 检查标记后是否有 Mermaid 代码块
-    const mermaidMatch = afterMarker.match(/^\s*\n```mermaid\n[\s\S]*?```/);
+    // 只检查标记后紧邻的区域（最多 5 行），避免误匹配需求描述中的 mermaid 示例
+    const nearbyLines = afterMarker.split('\n').slice(0, 5).join('\n');
+    const mermaidMatch = nearbyLines.match(/^\s*\n```mermaid\n[\s\S]*?```/);
 
     if (mermaidMatch) {
       // 替换已有的 Mermaid 代码块

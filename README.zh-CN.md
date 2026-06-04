@@ -69,9 +69,15 @@ Claude 会问你问题，生成结构化的 spec，然后校验——在写任�
 
 ✅ **自动校验** — 9 条内置规则，抓缺失场景、模糊词汇、不完整覆盖。
 
-🔄 **Delta 变更** — 只描述改了什么，不用重写整个文件。合并冲突不可能发生。
+🔍 **深度分析** — `--deep` 模式检测场景间逻辑矛盾和覆盖度缺口。
 
-📊 **Mermaid 图表** — 自动生成流程图、状态图、测试覆盖矩阵。
+📊 **自动图表** — 添加 `<!-- DIAGRAM:flowchart -->`，Mermaid 图表自动生成并嵌入。
+
+🔗 **源码追踪** — 添加 `<!-- source: src/foo.ts -->`，代码变更时提醒 spec 是否过时。
+
+🏷️ **场景分类** — 场景自动标记为正常/异常/边界，缺少异常场景时警告。
+
+🔄 **Delta 变更** — 只描述改了什么，不用重写整个文件。合并冲突不可能发生。
 
 🛡️ **反幻觉设计** — 红线表和检查清单，防止 Claude 跳步或伪造完成。
 
@@ -113,12 +119,19 @@ Then 系统显示错误提示并记录日志
 ### 2. 校验
 
 ```bash
+# 基础校验（格式 + 规则 + 场景分类）
 node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md
+
+# 深度校验（+ 逻辑一致性分析）
+node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md --deep
 ```
 
 ```
 ✅ valid: true
    errors: 0, warnings: 0, info: 0
+
+   scenarioTypes:
+     requirements[0]: [normal, error, boundary]
 ```
 
 ### 3. 实现
@@ -144,12 +157,14 @@ Claude 创建详细计划，然后每个任务双重 review 实现。
 |------|------|
 | 📋 **Spec 生成** | 自然语言 → 结构化 spec + 校验 |
 | ✅ **9 条校验规则** | 抓缺失 SHALL、模糊词、不完整场景 |
+| 🔍 **深度分析** | `--deep` 模式：逻辑矛盾检测、覆盖度缺口分析 |
+| 📊 **自动图表** | `<!-- DIAGRAM:flowchart/state -->` → Mermaid 图表自动嵌入 |
+| 🔗 **源码追踪** | `<!-- source: path -->` → 代码变更时提醒 spec 过时 |
+| 🏷️ **场景分类** | 自动标记正常/异常/边界场景，缺异常时警告 |
 | 🔄 **Delta 合并** | 增量 spec 变更，不用全量重写 |
-| 📊 **Mermaid 图表** | 自动生成流程图和状态图 |
 | 🛡️ **反幻觉设计** | 红线表、检查清单、证据验证 |
 | 🤖 **子代理管道** | 每任务：实现 → spec 审查 → 代码审查 |
 | ⚙️ **配置分层** | 全局 → 项目 → 变更，优先级合并 |
-| 🔍 **上游追踪** | 检测与 OpenSpec/superpowers-zh 的偏差 |
 | 📦 **归档系统** | 完整生命周期：草稿 → 进行中 → 审查 → 完成 |
 | 🧪 **测试生成** | TypeScript (vitest) 和 Python (pytest) 骨架 |
 | 🔌 **CI 集成** | GitHub Actions PR 校验工作流 |
