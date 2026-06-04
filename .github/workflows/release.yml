@@ -36,6 +36,9 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Bundle validate script
+        run: npm run bundle-validate
+
       - name: Run tests
         run: npm test
 
