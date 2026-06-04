@@ -1,5 +1,5 @@
 {
-  "name": "superspec",
+  "name": "@chenjazzyboss/superspec",
   "version": "1.0.0",
   "type": "module",
   "description": "AI-native spec management tool for Claude Code",
