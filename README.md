@@ -83,6 +83,157 @@ Claude will ask you questions, generate a structured spec, and validate it — b
 
 🤖 **Subagent orchestration** — Dual-review pipeline: implement → spec-check → code-review. Every task.
 
+## CLI Commands
+
+### `superspec init`
+
+Initialize superSpec in your project.
+
+```bash
+superspec init                  # Default setup
+superspec init --interactive    # Interactive configuration
+superspec init --ci             # Include GitHub Actions workflow
+```
+
+Creates `.superspec/` directory structure, injects `CLAUDE.md`, copies templates and scripts.
+
+### `superspec validate <spec>`
+
+Validate a spec file.
+
+```bash
+superspec validate batch-export              # By spec name
+superspec validate .superspec/specs/batch-export/spec.md  # By file path
+superspec validate batch-export --strict     # WARNING = failure
+superspec validate batch-export --deep       # Logical consistency analysis
+```
+
+Output (JSON):
+```json
+{
+  "valid": true,
+  "issues": [],
+  "summary": { "errors": 0, "warnings": 0, "info": 0 },
+  "scenarioTypes": {
+    "requirements[0]": ["normal", "error", "boundary"]
+  }
+}
+```
+
+### `superspec ci`
+
+Batch validate all specs.
+
+```bash
+superspec ci              # Validate all specs
+superspec ci --strict     # Strict mode
+superspec ci --json       # JSON output
+```
+
+### `superspec generate <name>`
+
+Generate test code skeleton from spec.
+
+```bash
+superspec generate batch-export                          # TypeScript (default)
+superspec generate batch-export -l python                # Python
+superspec generate batch-export -o test/batch.test.ts    # Write to file
+```
+
+### `superspec update <name>`
+
+Incrementally update a spec via Delta JSON.
+
+```bash
+cat delta.json | superspec update batch-export
+superspec update batch-export -f delta.json
+```
+
+### `superspec diff <name>`
+
+Compare current spec with historical version.
+
+```bash
+superspec diff batch-export                    # Compare with latest snapshot
+superspec diff batch-export --from 2026-06-01  # Compare with specific version
+```
+
+### `superspec history <name>`
+
+List all historical snapshots of a spec.
+
+```bash
+superspec history batch-export
+```
+
+### `superspec archive <name>`
+
+Archive a completed change.
+
+```bash
+superspec archive add-pdf-export
+```
+
+### `superspec changes`
+
+List in-progress changes.
+
+```bash
+superspec changes
+```
+
+### `superspec uninstall`
+
+Remove all superSpec files from project.
+
+```bash
+superspec uninstall        # With confirmation
+superspec uninstall -y     # Skip confirmation
+```
+
+## Spec Format
+
+A spec file uses structured Markdown:
+
+```markdown
+# Feature Name
+
+## Purpose
+
+Description of what this feature does and why it's needed.
+Must be at least 50 characters.
+
+<!-- DIAGRAM:flowchart -->
+
+## Requirements
+
+### Requirement: Requirement Name
+The system SHALL do something specific.
+
+#### Scenario: Normal flow
+Given some precondition
+When some action
+Then expected result
+
+#### Scenario: Exception handling
+Given some precondition
+When an error occurs
+Then error is handled gracefully
+
+#### Scenario: Boundary condition
+Given edge case data
+When processing
+Then system handles correctly
+```
+
+### Spec Annotations
+
+| Annotation | Purpose | Example |
+|------------|---------|---------|
+| `<!-- DIAGRAM:flowchart -->` | Auto-generate flowchart | Embedded after validation |
+| `<!-- DIAGRAM:state -->` | Auto-generate state diagram | Embedded after validation |
+| `<!-- source: path -->` | Link to source code | `<!-- source: src/core/foo.ts -->` |
+
 ## How it works
 
 ### 1. Generate a spec
@@ -210,6 +361,31 @@ Every high-risk skill has:
 <HARD-GATE>
 No fresh evidence = no completion claim. No exceptions.
 </HARD-GATE>
+```
+
+## Project structure
+
+```
+superSpec/
+├── bin/superspec.js          # CLI entry point
+├── src/
+│   ├── cli/index.ts          # CLI commands
+│   ├── core/
+│   │   ├── validator.ts      # Validation engine
+│   │   ├── spec-parser.ts    # Markdown parser
+│   │   ├── spec-schema.ts    # Zod schemas
+│   │   ├── deep-analysis.ts  # Logical consistency check
+│   │   ├── diagram-generator.ts  # Auto Mermaid diagrams
+│   │   ├── source-tracker.ts # Spec-code sync tracking
+│   │   ├── delta-merge.ts    # Incremental spec updates
+│   │   ├── rules/            # Validation rules
+│   │   ├── diagrams/         # Diagram generators
+│   │   └── config/           # Configuration system
+│   ├── adapters/             # Test code generators
+│   └── ci/                   # CI runner
+├── templates/                # Project templates
+├── test/                     # Test suite
+└── dist/                     # Build output
 ```
 
 ## Acknowledgments

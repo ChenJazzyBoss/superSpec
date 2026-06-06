@@ -83,6 +83,157 @@ Claude 会问你问题，生成结构化的 spec，然后校验——在写任�
 
 🤖 **子代理编排** — 每个任务双重 review：实现 → spec 审查 → 代码审查。
 
+## CLI 命令
+
+### `superspec init`
+
+初始化项目。
+
+```bash
+superspec init                  # 默认配置
+superspec init --interactive    # 交互式配置
+superspec init --ci             # 包含 GitHub Actions workflow
+```
+
+创建 `.superspec/` 目录结构，注入 `CLAUDE.md`，复制模板和脚本。
+
+### `superspec validate <spec>`
+
+校验 spec 文件。
+
+```bash
+superspec validate batch-export              # 按 spec 名称
+superspec validate .superspec/specs/batch-export/spec.md  # 按文件路径
+superspec validate batch-export --strict     # WARNING 也视为失败
+superspec validate batch-export --deep       # 逻辑一致性分析
+```
+
+输出（JSON）：
+```json
+{
+  "valid": true,
+  "issues": [],
+  "summary": { "errors": 0, "warnings": 0, "info": 0 },
+  "scenarioTypes": {
+    "requirements[0]": ["normal", "error", "boundary"]
+  }
+}
+```
+
+### `superspec ci`
+
+批量校验所有 spec。
+
+```bash
+superspec ci              # 校验所有 spec
+superspec ci --strict     # 严格模式
+superspec ci --json       # JSON 输出
+```
+
+### `superspec generate <name>`
+
+从 spec 生成测试代码骨架。
+
+```bash
+superspec generate batch-export                          # TypeScript（默认）
+superspec generate batch-export -l python                # Python
+superspec generate batch-export -o test/batch.test.ts    # 写入文件
+```
+
+### `superspec update <name>`
+
+通过 Delta JSON 增量更新 spec。
+
+```bash
+cat delta.json | superspec update batch-export
+superspec update batch-export -f delta.json
+```
+
+### `superspec diff <name>`
+
+对比 spec 的当前版本与历史版本。
+
+```bash
+superspec diff batch-export                    # 与最新快照对比
+superspec diff batch-export --from 2026-06-01  # 与指定版本对比
+```
+
+### `superspec history <name>`
+
+列出 spec 的所有历史快照。
+
+```bash
+superspec history batch-export
+```
+
+### `superspec archive <name>`
+
+归档已完成的变更。
+
+```bash
+superspec archive add-pdf-export
+```
+
+### `superspec changes`
+
+列出进行中的变更。
+
+```bash
+superspec changes
+```
+
+### `superspec uninstall`
+
+移除 superSpec 生成的所有文件。
+
+```bash
+superspec uninstall        # 需要确认
+superspec uninstall -y     # 跳过确认
+```
+
+## Spec 格式
+
+spec 文件使用结构化 Markdown：
+
+```markdown
+# 功能名称
+
+## Purpose
+
+功能描述，说明做什么、为什么需要。
+至少 50 个字符。
+
+<!-- DIAGRAM:flowchart -->
+
+## Requirements
+
+### Requirement: 需求名称
+系统 SHALL 做某件具体的事。
+
+#### Scenario: 正常流程
+Given 某个前置条件
+When 某个动作
+Then 预期结果
+
+#### Scenario: 异常处理
+Given 某个前置条件
+When 发生错误
+Then 错误被正确处理
+
+#### Scenario: 边界条件
+Given 边界数据
+When 处理
+Then 系统正确处理
+```
+
+### Spec 标注
+
+| 标注 | 用途 | 示例 |
+|------|------|------|
+| `<!-- DIAGRAM:flowchart -->` | 自动生成流程图 | 校验后自动嵌入 |
+| `<!-- DIAGRAM:state -->` | 自动生成状态图 | 校验后自动嵌入 |
+| `<!-- source: path -->` | 关联源码文件 | `<!-- source: src/core/foo.ts -->` |
+
 ## 工作原理
 
 ### 1. 生成 spec
@@ -210,6 +361,31 @@ flowchart LR
 <HARD-GATE>
 没有新鲜证据 = 不允许声明完成。没有例外。
 </HARD-GATE>
+```
+
+## 项目结构
+
+```
+superSpec/
+├── bin/superspec.js          # CLI 入口
+├── src/
+│   ├── cli/index.ts          # CLI 命令
+│   ├── core/
+│   │   ├── validator.ts      # 校验引擎
+│   │   ├── spec-parser.ts    # Markdown 解析器
+│   │   ├── spec-schema.ts    # Zod Schema
+│   │   ├── deep-analysis.ts  # 逻辑一致性检查
+│   │   ├── diagram-generator.ts  # 自动 Mermaid 图表
+│   │   ├── source-tracker.ts # 源码关联追踪
+│   │   ├── delta-merge.ts    # 增量 spec 更新
+│   │   ├── rules/            # 校验规则
+│   │   ├── diagrams/         # 图表生成器
+│   │   └── config/           # 配置系统
+│   ├── adapters/             # 测试代码生成器
+│   └── ci/                   # CI 运行器
+├── templates/                # 项目模板
+├── test/                     # 测试套件
+└── dist/                     # 构建产物
 ```
 
 ## 致谢
