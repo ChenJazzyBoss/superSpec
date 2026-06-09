@@ -419,6 +419,42 @@ program
   });
 
 program
+  .command('guard')
+  .description('检查技能文件的反幻觉配置')
+  .argument('<skill-path>', '技能文件路径（SKILL.md）')
+  .option('--json', '输出 JSON 格式')
+  .action(async (skillPath: string, options: { json?: boolean }) => {
+    const { readFileSync, existsSync } = await import('fs');
+    const { SkillGuard } = await import('../core/anti-rationalization/skill-guard.js');
+
+    if (!existsSync(skillPath)) {
+      console.error(`错误: 技能文件不存在 ${skillPath}`);
+      process.exit(1);
+    }
+
+    const content = readFileSync(skillPath, 'utf-8');
+    const guard = new SkillGuard(content);
+    const result = guard.beforeExecute();
+
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      if (result.allowed) {
+        console.log('✅ 技能配置检查通过');
+        console.log('   红线表: 已配置');
+        console.log('   HARD-GATE: 条件满足');
+      } else {
+        console.log('❌ 技能配置检查失败');
+        for (const issue of result.issues) {
+          console.log(`   - ${issue}`);
+        }
+      }
+    }
+
+    process.exit(result.allowed ? 0 : 1);
+  });
+
+program
   .command('uninstall')
   .description('移除 superSpec 生成的所有文件')
   .option('-y, --yes', '跳过确认提示')
