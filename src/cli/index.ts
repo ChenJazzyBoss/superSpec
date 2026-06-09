@@ -498,4 +498,44 @@ program
     }
   });
 
+program
+  .command('validate-modules')
+  .description('校验模块清单文件')
+  .argument('<file>', '模块清单文件路径（Markdown 格式）')
+  .option('-p, --project <name>', '项目名称', 'default')
+  .option('--json', '输出 JSON 格式')
+  .action(async (file: string, options: { project: string; json?: boolean }) => {
+    const { readFileSync, existsSync } = await import('fs');
+    const { validateModuleList } = await import('../core/module-validator.js');
+
+    if (!existsSync(file)) {
+      console.error(`错误: 文件不存在 ${file}`);
+      process.exit(1);
+    }
+
+    const content = readFileSync(file, 'utf-8');
+    const report = validateModuleList(content, options.project);
+
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      if (report.valid) {
+        console.log('✅ 模块清单校验通过');
+        console.log(`   模块数: ${report.summary.modules}`);
+        console.log(`   警告: ${report.summary.warnings}`);
+      } else {
+        console.log('❌ 模块清单校验失败');
+        console.log(`   错误: ${report.summary.errors}`);
+        console.log(`   警告: ${report.summary.warnings}`);
+        console.log('');
+        for (const issue of report.issues) {
+          const icon = issue.level === 'ERROR' ? '❌' : issue.level === 'WARNING' ? '⚠️' : 'ℹ️';
+          console.log(`   ${icon} ${issue.message}`);
+        }
+      }
+    }
+
+    process.exit(report.valid ? 0 : 1);
+  });
+
 program.parse();
