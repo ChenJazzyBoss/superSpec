@@ -81,6 +81,12 @@ Claude 会问你问题，生成结构化的 spec，然后校验——在写任�
 
 🛡️ **反幻觉设计** — 红线表和检查清单，防止 Claude 跳步或伪造完成。
 
+🔍 **SkillGuard** — 程序化检测 AI 跳步模式。运行 `superspec guard` 验证技能配置。
+
+📋 **Init Template** — 在生成 spec 前收集人类上下文。解决"AI 读不了你的心"的问题。
+
+📦 **多产物校验** — 使用 `superspec validate-modules` 校验模块清单。含循环依赖检测。
+
 🤖 **子代理编排** — 每个任务双重 review：实现 → spec 审查 → 代码审查。
 
 ## CLI 命令
@@ -181,6 +187,29 @@ superspec archive add-pdf-export
 ```bash
 superspec changes
 ```
+
+### `superspec guard`
+
+检查技能文件的反幻觉配置。
+
+```bash
+superspec guard src/skills/generate-spec/SKILL.md    # 检查技能配置
+superspec guard src/skills/validate-spec/SKILL.md --json  # JSON 输出
+```
+
+验证技能文件是否配置了正确的红线表和 HARD-GATE 标签。
+
+### `superspec validate-modules`
+
+校验模块清单文件。
+
+```bash
+superspec validate-modules modules.md                    # 校验模块清单
+superspec validate-modules modules.md -p my-project      # 指定项目名
+superspec validate-modules modules.md --json             # JSON 输出
+```
+
+检查模块结构，检测循环依赖，验证命名规范。
 
 ### `superspec uninstall`
 
@@ -314,6 +343,9 @@ Claude 创建详细计划，然后每个任务双重 review 实现。
 | 🏷️ **场景分类** | 自动标记正常/异常/边界场景，缺异常时警告 |
 | 🔄 **Delta 合并** | 增量 spec 变更，不用全量重写 |
 | 🛡️ **反幻觉设计** | 红线表、检查清单、证据验证 |
+| 🔍 **SkillGuard** | 程序化检测 AI 跳步模式 |
+| 📋 **Init Template** | 在生成 spec 前收集人类上下文 |
+| 📦 **多产物校验** | 模块清单校验，含循环依赖检测 |
 | 🤖 **子代理管道** | 每任务：实现 → spec 审查 → 代码审查 |
 | ⚙️ **配置分层** | 全局 → 项目 → 变更，优先级合并 |
 | 📦 **归档系统** | 完整生命周期：草稿 → 进行中 → 审查 → 完成 |
@@ -368,22 +400,29 @@ flowchart LR
 ```
 superSpec/
 ├── bin/superspec.js          # CLI 入口
+├── CLAUDE.md                 # 项目 AI 行为指南
 ├── src/
 │   ├── cli/index.ts          # CLI 命令
 │   ├── core/
 │   │   ├── validator.ts      # 校验引擎
 │   │   ├── spec-parser.ts    # Markdown 解析器
 │   │   ├── spec-schema.ts    # Zod Schema
+│   │   ├── module-schema.ts  # 模块清单 Schema
+│   │   ├── module-parser.ts  # 模块清单解析器
+│   │   ├── module-validator.ts # 模块清单校验器
 │   │   ├── deep-analysis.ts  # 逻辑一致性检查
 │   │   ├── diagram-generator.ts  # 自动 Mermaid 图表
 │   │   ├── source-tracker.ts # 源码关联追踪
 │   │   ├── delta-merge.ts    # 增量 spec 更新
+│   │   ├── anti-rationalization/ # SkillGuard 系统
 │   │   ├── rules/            # 校验规则
 │   │   ├── diagrams/         # 图表生成器
 │   │   └── config/           # 配置系统
 │   ├── adapters/             # 测试代码生成器
 │   └── ci/                   # CI 运行器
 ├── templates/                # 项目模板
+│   ├── spec-template.md      # Spec 模板
+│   └── init-spec-template.md # Init Template（收集上下文）
 ├── test/                     # 测试套件
 └── dist/                     # 构建产物
 ```

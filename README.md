@@ -81,6 +81,12 @@ Claude will ask you questions, generate a structured spec, and validate it — b
 
 🛡️ **Anti-hallucination** — Red flag tables and checklists prevent Claude from skipping steps or faking completion.
 
+🔍 **SkillGuard** — Programmatic detection of AI skip patterns. Run `superspec guard` to verify skill configuration.
+
+📋 **Init Template** — Collect human context before spec generation. Solves the "AI can't read your mind" problem.
+
+📦 **Multi-artifact validation** — Validate module lists with `superspec validate-modules`. Circular dependency detection included.
+
 🤖 **Subagent orchestration** — Dual-review pipeline: implement → spec-check → code-review. Every task.
 
 ## CLI Commands
@@ -181,6 +187,29 @@ List in-progress changes.
 ```bash
 superspec changes
 ```
+
+### `superspec guard`
+
+Check skill file's anti-hallucination configuration.
+
+```bash
+superspec guard src/skills/generate-spec/SKILL.md    # Check skill config
+superspec guard src/skills/validate-spec/SKILL.md --json  # JSON output
+```
+
+Verifies that skill files have proper red flag tables and HARD-GATE tags configured.
+
+### `superspec validate-modules`
+
+Validate module list files.
+
+```bash
+superspec validate-modules modules.md                    # Validate module list
+superspec validate-modules modules.md -p my-project      # With project name
+superspec validate-modules modules.md --json             # JSON output
+```
+
+Checks module structure, detects circular dependencies, validates naming conventions.
 
 ### `superspec uninstall`
 
@@ -314,6 +343,9 @@ Changes are recorded. Specs grow. History is preserved.
 | 🏷️ **Scenario classification** | Auto-tags normal/error/boundary scenarios, warns on missing error cases |
 | 🔄 **Delta merge** | Incremental spec changes, no full-file rewrites |
 | 🛡️ **Anti-hallucination** | Red flags, checklists, evidence verification |
+| 🔍 **SkillGuard** | Programmatic detection of AI skip patterns |
+| 📋 **Init Template** | Collect human context before spec generation |
+| 📦 **Multi-artifact validation** | Module list validation with circular dependency detection |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
 | ⚙️ **Config layers** | Global → project → change, with priority merge |
 | 📦 **Archive system** | Full change lifecycle: draft → in-progress → review → done |
@@ -368,22 +400,29 @@ No fresh evidence = no completion claim. No exceptions.
 ```
 superSpec/
 ├── bin/superspec.js          # CLI entry point
+├── CLAUDE.md                 # Project AI behavior guide
 ├── src/
 │   ├── cli/index.ts          # CLI commands
 │   ├── core/
 │   │   ├── validator.ts      # Validation engine
 │   │   ├── spec-parser.ts    # Markdown parser
 │   │   ├── spec-schema.ts    # Zod schemas
+│   │   ├── module-schema.ts  # Module list schemas
+│   │   ├── module-parser.ts  # Module list parser
+│   │   ├── module-validator.ts # Module list validator
 │   │   ├── deep-analysis.ts  # Logical consistency check
 │   │   ├── diagram-generator.ts  # Auto Mermaid diagrams
 │   │   ├── source-tracker.ts # Spec-code sync tracking
 │   │   ├── delta-merge.ts    # Incremental spec updates
+│   │   ├── anti-rationalization/ # SkillGuard system
 │   │   ├── rules/            # Validation rules
 │   │   ├── diagrams/         # Diagram generators
 │   │   └── config/           # Configuration system
 │   ├── adapters/             # Test code generators
 │   └── ci/                   # CI runner
 ├── templates/                # Project templates
+│   ├── spec-template.md      # Spec scaffold
+│   └── init-spec-template.md # Init Template for context collection
 ├── test/                     # Test suite
 └── dist/                     # Build output
 ```
