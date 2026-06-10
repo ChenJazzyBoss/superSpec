@@ -622,17 +622,18 @@ pipelineCmd
     const runner = new PipelineRunner(cwd);
 
     try {
-      const record = await runner.run(name, { fromStage: options.from as any });
+      const record = await runner.run(name, { fromStage: options.from as 'validate-spec' | 'write-plan' | 'implement' | 'verify' | 'archive' | undefined });
       console.log(formatExecutionStatus(record));
 
-      // 如果管道在 AI 阶段暂停（pending），输出操作指引
-      const pendingStage = record.stages.find((s) => s.status === 'pending' || s.status === 'completed');
-      if (pendingStage) {
+      // 查找最后一个完成的阶段，如果是 AI 阶段则输出操作指引
+      const completedStages = record.stages.filter((s) => s.status === 'completed');
+      const lastCompleted = completedStages[completedStages.length - 1];
+      if (lastCompleted) {
         const guidanceMap = getStageGuidanceMap();
-        const guidance = guidanceMap[pendingStage.id as keyof typeof guidanceMap];
+        const guidance = guidanceMap[lastCompleted.id as keyof typeof guidanceMap];
         if (guidance && guidance.skillName) {
           console.log(`\n📍 下一步操作指引:`);
-          console.log(`   阶段: ${pendingStage.id}`);
+          console.log(`   阶段: ${lastCompleted.id}`);
           console.log(`   技能: ${guidance.skillName}`);
           console.log(`   说明: ${guidance.description}`);
           console.log(`   操作: ${guidance.nextCommand}`);
