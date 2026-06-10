@@ -113,3 +113,9 @@ superspec changes
 - [ ] 合并后 specs/ 通过 strict 校验（0 errors, 0 warnings）
 - [ ] 归档命令执行成功
 - [ ] changes/ 目录中该变更已移除或标记为已归档
+
+## 下一步
+
+归档完成后，工作流已结束。可以：
+- 使用 `brainstorm` 开始下一个需求
+- 使用 `pipeline show` 查看完整工作流

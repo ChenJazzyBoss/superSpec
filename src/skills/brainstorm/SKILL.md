@@ -90,3 +90,9 @@ node .superspec/scripts/validate.js .superspec/specs/<name>/spec.md
 ```
 
 如果校验失败，必须修正后重新校验，直到通过。
+
+## 下一步
+
+需求收集完成后，推荐：
+- **使用 `generate-spec`** 将需求转化为结构化 spec（推荐）
+- 使用 `pipeline show` 查看完整工作流

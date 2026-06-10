@@ -66,3 +66,10 @@ describe('需求名称', () => {
   });
 });
 ```
+
+## 下一步
+
+TDD 流程完成后，推荐：
+- **使用 `verify`** 证据驱动验证实现是否符合 spec（推荐）
+- 使用 `debug` 调试遇到的问题
+- 使用 `pipeline next implement` 查看推荐路径

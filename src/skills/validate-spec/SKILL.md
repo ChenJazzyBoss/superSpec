@@ -301,8 +301,9 @@ superSpec CI 校验结果
 
 ## 下一步
 
-校验通过后，可以：
-- 使用 `write-plan` 生成实现计划
+校验通过后，推荐：
+- **使用 `write-plan`** 生成实现计划（推荐）
 - 使用 `generate-test` 生成测试代码骨架
 - 使用 `subagent-dev` 开始子 Agent 驱动开发
 - 使用 `archive` 归档完成的变更
+- 使用 `pipeline next validate-spec` 查看推荐路径

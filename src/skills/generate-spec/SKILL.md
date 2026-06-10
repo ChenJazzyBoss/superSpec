@@ -93,3 +93,10 @@ flowchart TB
 - [ ] 没有模糊词汇（尽快、多种、适当、等等）
 - [ ] 图表已嵌入 spec
 - [ ] `superspec validate` 通过（valid: true, 0 errors）
+
+## 下一步
+
+spec 生成并通过校验后，推荐：
+- **使用 `validate-spec`** 对 spec 进行完整校验（推荐）
+- 使用 `update-spec` 修改已有 spec
+- 使用 `pipeline next generate-spec` 查看推荐路径
