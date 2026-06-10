@@ -7,7 +7,7 @@
 把自然语言变成可执行的规格说明书。在 AI 幻觉变成 bug 之前就抓住它。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-383%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-563%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 [English](./README.md) | 中文
@@ -35,9 +35,14 @@ superSpec 卡在你的意图和 Claude 的代码之间。它强制要求在写�
 
 ```mermaid
 flowchart LR
-    You["你"] -- 批量导出 --> SS["superSpec"]
-    SS -- spec --> Claude["Claude Code"]
-    Claude -- 代码 --> You
+    You["👤 你"] -- "批量导出" --> BS["🧠 Brainstorm<br/>路由评估"]
+    BS -->|"🚀 轻量"| GS["📋 generate-spec"]
+    BS -->|"📦 完整"| CH["📂 变更目录"]
+    GS --> V["✅ validate-spec<br/>+ SkillGuard"]
+    CH --> V
+    V -->|"已校验 spec"| CC["🤖 Claude Code"]
+    CC -->|"代码 + 证据"| AR["📦 archive"]
+    AR --> LS["📜 活文档 Spec"]
 ```
 
 ## 快速开始
@@ -83,7 +88,7 @@ Claude 会问你问题，生成结构化的 spec，然后校验——在写任�
 
 🔍 **SkillGuard** — 程序化检测 AI 跳步模式。运行 `superspec guard` 验证技能配置。
 
-📋 **Init Template** — 在生成 spec 前收集人类上下文。解决"AI 读不了你的心"的问题。
+📋 **Init Template** — 4 种项目类型模板（通用/Web API/CLI 工具/库），在生成 spec 前收集人类上下文。
 
 📦 **多产物校验** — 使用 `superspec validate-modules` 校验模块清单。含循环依赖检测。
 
@@ -99,6 +104,8 @@ Claude 会问你问题，生成结构化的 spec，然后校验——在写任�
 superspec init                  # 默认配置
 superspec init --interactive    # 交互式配置
 superspec init --ci             # 包含 GitHub Actions workflow
+superspec init --template web-api   # 使用 Web API 模板
+superspec init --list-templates     # 列出所有可用模板
 ```
 
 创建 `.superspec/` 目录结构，注入 `CLAUDE.md`，复制模板和脚本。
@@ -210,6 +217,100 @@ superspec validate-modules modules.md --json             # JSON 输出
 ```
 
 检查模块结构，检测循环依赖，验证命名规范。
+
+### `superspec pipeline show`
+
+显示默认工作流定义。
+
+```bash
+superspec pipeline show
+```
+
+输出：
+```
+📋 superSpec 默认工作流
+
+  阶段              类型     依赖
+  ──────────────── ──────── ──────────────────
+  brainstorm        可选     —
+  generate-spec     必需     brainstorm
+  validate-spec     必需     generate-spec
+  write-plan        必需     validate-spec
+  implement         必需     write-plan
+  verify            必需     implement
+  archive           必需     verify
+```
+
+### `superspec pipeline next <stage>`
+
+查询指定阶段的推荐下一步。
+
+```bash
+superspec pipeline next brainstorm        # → generate-spec
+superspec pipeline next validate-spec     # → write-plan
+superspec pipeline next archive           # → "已到达工作流末尾"
+```
+
+### `superspec pipeline run <name>`
+
+运行管道——自动执行可程序化阶段（validate-spec、archive），AI 阶段输出操作指引。
+
+```bash
+superspec pipeline run batch-export                     # 从 validate-spec 开始
+superspec pipeline run batch-export --from write-plan   # 从指定阶段恢复
+```
+
+执行记录持久化到 `.superspec/pipeline/<exec-id>.json`。
+
+### `superspec pipeline status [name]`
+
+查看管道执行状态。
+
+```bash
+superspec pipeline status               # 最新执行
+superspec pipeline status batch-export  # 该 spec 的最新执行
+superspec pipeline status --exec <id>   # 按执行 id 查询
+```
+
+### `superspec pipeline list`
+
+列出所有管道执行记录。
+
+```bash
+superspec pipeline list
+```
+
+### `superspec pipeline resume <exec-id>`
+
+恢复中断的管道执行。
+
+```bash
+superspec pipeline resume batch-export-20260611100000
+```
+
+### `superspec change`
+
+变更生命周期管理（新功能和需求变更的统一模型）。
+
+```bash
+superspec change create <name>             # 创建变更目录和 proposal
+superspec change create <name> --why "..." # 附带描述
+superspec change list                      # 列出所有变更
+superspec change status <name>             # 查看变更阶段和 capabilities
+superspec change apply <name>              # 合并 delta spec 到主 spec
+superspec change apply <name> --dry-run    # 仅校验不写入
+```
+
+### `superspec route`
+
+评估用户意图并推荐路径。
+
+```bash
+superspec route "新增导出按钮"          # → 🚀 轻量路径
+superspec route "实现完整认证系统" -c 3  # → 📦 完整路径
+superspec route "修改导出格式为PDF"      # → 📦 完整路径（需求变更）
+superspec route "导出功能报错了"          # → 🔧 排障路径
+```
 
 ### `superspec uninstall`
 
@@ -323,7 +424,15 @@ node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md --deep
 
 Claude 创建详细计划，然后每个任务双重 review 实现。
 
-### 4. 归档
+### 4. 运行管道
+
+```bash
+superspec pipeline run batch-export
+```
+
+自动执行可程序化阶段（validate-spec、archive），AI 阶段输出操作指引。执行状态持久化——随时可以恢复。
+
+### 5. 归档
 
 ```
 /archive
@@ -344,9 +453,16 @@ Claude 创建详细计划，然后每个任务双重 review 实现。
 | 🔄 **Delta 合并** | 增量 spec 变更，不用全量重写 |
 | 🛡️ **反幻觉设计** | 红线表、检查清单、证据验证 |
 | 🔍 **SkillGuard** | 程序化检测 AI 跳步模式 |
-| 📋 **Init Template** | 在生成 spec 前收集人类上下文 |
+| 📋 **Init Template** | 4 种项目类型模板，在生成 spec 前收集人类上下文 |
 | 📦 **多产物校验** | 模块清单校验，含循环依赖检测 |
 | 🤖 **子代理管道** | 每任务：实现 → spec 审查 → 代码审查 |
+| 🔀 **技能管道** | 7 阶段 DAG 工作流，前置/后置条件、上下文传递、重试策略 |
+| 🚀 **管道执行** | `pipeline run/status/list/resume` — 自动执行可程序化阶段，持久化执行记录，支持恢复 |
+| 📂 **统一变更模型** | 变更目录：proposal → delta spec → apply 生命周期（借鉴 OpenSpec） |
+| 🧭 **中央路由器** | Brainstorm 技能路由新功能到统一管道，Bug 走排障路径（借鉴 cospowers） |
+| 🔄 **Specs 合并引擎** | 合并 delta spec（ADDED/MODIFIED/REMOVED/RENAMED）到主 spec，支持 dry-run |
+| 🛡️ **PipelineGuardRunner** | SkillGuard 钩子集成到管道执行：beforeExecute、onOutput、onCompletion |
+| 🧭 **技能路由** | 每个技能有"下一步"部分，可通过 `pipeline next` 查询 |
 | ⚙️ **配置分层** | 全局 → 项目 → 变更，优先级合并 |
 | 📦 **归档系统** | 完整生命周期：草稿 → 进行中 → 审查 → 完成 |
 | 🧪 **测试生成** | TypeScript (vitest) 和 Python (pytest) 骨架 |
@@ -366,11 +482,41 @@ Claude 创建详细计划，然后每个任务双重 review 实现。
 ## 完整工作流
 
 ```mermaid
-flowchart LR
-    brainstorm --> spec --> validate --> plan --> implement --> verify --> archive
+flowchart TD
+    User["👤 用户输入"] --> Router["🧭 路由评估"]
+    Router -->|"🚀 轻量路径<br/>(简单新功能)"| Spec["📋 generate-spec"]
+    Router -->|"📦 完整路径<br/>(复杂/变更)"| Change["📂 变更目录<br/>proposal → delta-spec"]
+    Router -->|"🔧 排障路径<br/>(Bug/失败)"| Debug["🔍 debug"]
+
+    Change --> Spec
+    Spec --> Validate["✅ validate-spec<br/>(自动)"]
+    Validate -->|通过| Plan["📝 write-plan"]
+    Validate -->|失败| Spec
+    Plan --> Implement["🔨 implement"]
+    Implement --> Verify["🧪 verify"]
+    Verify -->|通过| Archive["📦 archive<br/>(自动)"]
+    Verify -->|失败| Implement
+
+    style Router fill:#f9f,stroke:#333
+    style Validate fill:#9f9,stroke:#333
+    style Archive fill:#9f9,stroke:#333
+    style Debug fill:#ff9,stroke:#333
 ```
 
-每个阶段有前置条件、后置条件、重试策略。管道是确定性的——不是靠感觉。
+基于复杂度评估的 3 条自适应路径。可程序化阶段（validate-spec、archive）通过 `pipeline run` 自动执行。AI 阶段输出操作指引，等待完成后恢复。
+
+### PipelineGuardRunner
+
+管道在运行时集成 SkillGuard。每个阶段执行都经过反幻觉检查：
+
+```
+阶段开始 → SkillGuard.beforeExecute() → 检查红线表 & HARD-GATE
+阶段执行 → handler(context)
+阶段输出 → SkillGuard.onOutput()      → 检测跳步模式 & 红线
+阶段结束 → SkillGuard.onCompletion()  → 验证证据
+```
+
+如果技能文件缺少红线表，阶段被**阻断**——不是警告，是阻断。
 
 ## 反幻觉设计
 
@@ -414,7 +560,19 @@ superSpec/
 │   │   ├── diagram-generator.ts  # 自动 Mermaid 图表
 │   │   ├── source-tracker.ts # 源码关联追踪
 │   │   ├── delta-merge.ts    # 增量 spec 更新
+│   │   ├── change-lifecycle.ts   # 变更目录管理
+│   │   ├── delta-spec-parser.ts  # Markdown delta spec 解析器
+│   │   ├── specs-apply.ts    # Delta → 主 spec 合并引擎
+│   │   ├── route-evaluator.ts    # 意图识别 & 路径路由
 │   │   ├── anti-rationalization/ # SkillGuard 系统
+│   │   ├── pipeline/         # 技能编排管道
+│   │   │   ├── executor.ts   # 管道执行引擎
+│   │   │   ├── runner.ts     # CLI 运行时（run/status/list/resume）
+│   │   │   ├── guard-runner.ts   # SkillGuard 集成
+│   │   │   ├── context.ts    # 阶段间上下文传递
+│   │   │   ├── conditions.ts # 前置/后置条件检查
+│   │   │   ├── retry.ts      # 失败分类 & 重试
+│   │   │   └── workflow.ts   # 默认 7 阶段 DAG 定义
 │   │   ├── rules/            # 校验规则
 │   │   ├── diagrams/         # 图表生成器
 │   │   └── config/           # 配置系统
@@ -422,8 +580,14 @@ superSpec/
 │   └── ci/                   # CI 运行器
 ├── templates/                # 项目模板
 │   ├── spec-template.md      # Spec 模板
-│   └── init-spec-template.md # Init Template（收集上下文）
-├── test/                     # 测试套件
+│   ├── init-spec-template.md # Init Template（收集上下文）
+│   ├── change/               # 变更生命周期模板
+│   └── init-templates/       # 项目类型模板
+│       ├── general.md        # 通用项目
+│       ├── web-api.md        # Web API 项目
+│       ├── cli.md            # CLI 工具项目
+│       └── library.md        # 库/SDK 项目
+├── test/                     # 测试套件（563 个测试）
 └── dist/                     # 构建产物
 ```
 
@@ -431,9 +595,9 @@ superSpec/
 
 superSpec 站在两个优秀项目的肩膀上：
 
-**[OpenSpec](https://github.com/openspec-dev/openspec)** — specs/changes/archive 目录模型和行为契约 spec 格式，直接借鉴了 OpenSpec 的结构化规格管理方法。他们"spec 是活文档，不是一次性产物"的理念，塑造了 superSpec 的核心架构。
+**[OpenSpec](https://github.com/openspec-dev/openspec)** — specs/changes/archive 目录模型和行为契约 spec 格式，直接借鉴了 OpenSpec 的结构化规格管理方法。他们"spec 是活文档，不是一次性产物"的理念，塑造了 superSpec 的核心架构。delta spec 合并引擎和跨 section 冲突检测也借鉴了 OpenSpec 的设计。
 
-**[superpowers-zh](https://github.com/superpowers-dev/superpowers-zh)** — 运行时行为约束（XML 标签、反幻觉模式、子代理编排）受到了 superpowers-zh 的 AI 编码会话控制方法论的启发。
+**[superpowers-zh](https://github.com/superpowers-dev/superpowers-zh)** — 运行时行为约束（XML 标签、反幻觉模式、子代理编排）受到了 superpowers-zh 的 AI 编码会话控制方法论的启发。中央路由器的多路径设计也借鉴了 cospowers 的复杂度评估和路由概念。
 
 感谢两个项目的开源精神。🙏
 
