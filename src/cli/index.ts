@@ -538,4 +538,49 @@ program
     process.exit(report.valid ? 0 : 1);
   });
 
+// pipeline 子命令
+const pipelineCmd = program.command('pipeline').description('技能协作管道管理');
+
+pipelineCmd
+  .command('show')
+  .description('显示默认工作流定义')
+  .action(async () => {
+    const { DEFAULT_WORKFLOW } = await import('../core/pipeline/workflow.js');
+
+    console.log('📋 superSpec 默认工作流\n');
+    console.log('  阶段              类型     依赖');
+    console.log('  ──────────────── ──────── ──────────────────');
+    for (const stage of DEFAULT_WORKFLOW) {
+      const type = stage.required ? '必需' : '可选';
+      const deps = stage.dependencies.length > 0 ? stage.dependencies.join(', ') : '—';
+      console.log(`  ${stage.id.padEnd(16)} ${type.padEnd(8)} ${deps}`);
+    }
+    console.log(`\n共 ${DEFAULT_WORKFLOW.length} 个阶段`);
+  });
+
+pipelineCmd
+  .command('next')
+  .description('查询指定阶段的推荐下一步')
+  .argument('<stage>', '当前阶段名称')
+  .action(async (stage: string) => {
+    const { DEFAULT_WORKFLOW } = await import('../core/pipeline/workflow.js');
+
+    const idx = DEFAULT_WORKFLOW.findIndex((s) => s.id === stage);
+    if (idx === -1) {
+      console.error(`错误: 未知阶段 "${stage}"`);
+      console.error(`可用阶段: ${DEFAULT_WORKFLOW.map((s) => s.id).join(', ')}`);
+      process.exit(1);
+    }
+
+    if (idx === DEFAULT_WORKFLOW.length - 1) {
+      console.log(`🏁 "${stage}" 已到达工作流末尾`);
+      return;
+    }
+
+    const nextStage = DEFAULT_WORKFLOW[idx + 1];
+    console.log(`📍 当前阶段: ${stage}`);
+    console.log(`➡️  推荐下一步: ${nextStage.id} (${nextStage.name})`);
+    console.log(`   ${nextStage.required ? '必需阶段' : '可选阶段'}`);
+  });
+
 program.parse();

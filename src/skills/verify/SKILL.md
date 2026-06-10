@@ -99,3 +99,10 @@ node .superspec/scripts/validate.js .superspec/specs/<name>/spec.md
 | 构建成功 | 构建命令：exit 0 | linter 通过、日志看起来正常 |
 | Bug 已修复 | 原始症状测试：通过 | 代码已改、假设已修复 |
 | 需求已满足 | 逐项检查清单 | 测试通过 |
+
+## 下一步
+
+验证通过后，推荐：
+- **使用 `archive`** 归档完成的变更（推荐）
+- 使用 `debug` 调试验证中发现的问题
+- 使用 `pipeline next verify` 查看推荐路径

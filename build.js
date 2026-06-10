@@ -22,9 +22,20 @@ mkdirSync(distDir, { recursive: true });
 console.log('Compiling TypeScript...');
 try {
   execSync('npx tsc', { stdio: 'inherit' });
-  console.log('\nBuild completed successfully!');
+  console.log('\nTypeScript compilation completed!');
 } catch (error) {
   console.error('\nBuild failed!');
+  console.error(error.message);
+  process.exit(1);
+}
+
+// Bundle validate script with esbuild
+console.log('\nBundling validate script...');
+try {
+  execSync('node scripts/bundle-validate.js', { stdio: 'inherit' });
+  console.log('\nBuild completed successfully!');
+} catch (error) {
+  console.error('\nBundle failed!');
   console.error(error.message);
   process.exit(1);
 }

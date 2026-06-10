@@ -109,3 +109,10 @@ echo '{"specName":"<name>","changes":[...]}' | node bin/superspec.js update <nam
 | "我不确定要生成什么 Delta" | 先读 spec，再对比用户需求，差异就是 Delta。 |
 | "Delta JSON 太复杂了" | 每个变更只有 4-5 个字段。照着格式填就行。 |
 | "校验失败了，跳过吧" | 校验保证质量。修正 Delta，重新运行。 |
+
+## 下一步
+
+spec 修改完成后，推荐：
+- **使用 `validate-spec`** 重新校验修改后的 spec（推荐）
+- 使用 `write-plan` 更新实现计划
+- 使用 `pipeline next validate-spec` 查看推荐路径
