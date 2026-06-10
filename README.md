@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-558%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-563%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -35,11 +35,14 @@ superSpec sits between your intent and Claude's code. It forces a structured spe
 
 ```mermaid
 flowchart LR
-    You["You"] -- "intent" --> Route["superSpec<br/>Route Evaluator"]
-    Route -- "spec" --> Validate["Validate<br/>+ SkillGuard"]
-    Validate -- "verified spec" --> Claude["Claude Code"]
-    Claude -- "code + evidence" --> Verify["Verify"]
-    Verify -- "archive" --> Specs["Living Specs"]
+    You["👤 You"] -- "batch export" --> BS["🧠 Brainstorm<br/>Route Evaluator"]
+    BS -->|"🚀 Lightweight"| GS["📋 generate-spec"]
+    BS -->|"📦 Full"| CH["📂 Change Dir"]
+    GS --> V["✅ validate-spec<br/>+ SkillGuard"]
+    CH --> V
+    V -->|"verified spec"| CC["🤖 Claude Code"]
+    CC -->|"code + evidence"| AR["📦 archive"]
+    AR --> LS["📜 Living Specs"]
 ```
 
 ## Quick start

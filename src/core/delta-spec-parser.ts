@@ -219,7 +219,50 @@ export function validateDeltaSpec(delta: ParsedDeltaSpec): string[] {
     seen.add(name);
   }
 
+  // 跨 section 冲突检测（借鉴 OpenSpec）
+  const addedNames = new Set(delta.added.map(r => normalizeName(r.name)));
+  const modifiedNames = new Set(delta.modified.map(r => normalizeName(r.name)));
+  const removedNames = new Set(delta.removed.map(r => normalizeName(r.name)));
+  const renamedToNames = new Set(delta.renamed.map(r => normalizeName(r.meta?.to ?? '')));
+
+  for (const n of modifiedNames) {
+    if (removedNames.has(n)) {
+      issues.push(`需求 "${n}" 同时出现在 MODIFIED 和 REMOVED 中，存在冲突`);
+    }
+    if (addedNames.has(n)) {
+      issues.push(`需求 "${n}" 同时出现在 MODIFIED 和 ADDED 中，存在冲突`);
+    }
+  }
+  for (const n of addedNames) {
+    if (removedNames.has(n)) {
+      issues.push(`需求 "${n}" 同时出现在 ADDED 和 REMOVED 中，存在冲突`);
+    }
+  }
+
+  // RENAMED 的 FROM 不能出现在 MODIFIED 中（MODIFIED 必须引用新名）
+  for (const ren of delta.renamed) {
+    const fromNorm = normalizeName(ren.meta?.from ?? '');
+    if (modifiedNames.has(fromNorm)) {
+      issues.push(`RENAMED "${ren.meta?.from}" → "${ren.meta?.to}" 后，MODIFIED 必须引用新名称 "${ren.meta?.to}"，而非旧名称`);
+    }
+  }
+
+  // ADDED 不能与 RENAMED 的 TO 重名
+  for (const ren of delta.renamed) {
+    const toNorm = normalizeName(ren.meta?.to ?? '');
+    if (addedNames.has(toNorm)) {
+      issues.push(`ADDED "${ren.meta?.to}" 与 RENAMED 的目标名称冲突`);
+    }
+  }
+
   return issues;
+}
+
+/**
+ * 规范化需求名称（用于冲突检测中的名称匹配）
+ */
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase();
 }
 
 /**

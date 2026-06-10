@@ -196,6 +196,61 @@ describe('delta-spec-parser', () => {
       const issues = validateDeltaSpec(delta);
       expect(issues.some(i => i.includes('重复'))).toBe(true);
     });
+
+    it('should detect MODIFIED+REMOVED conflict', () => {
+      const delta = {
+        added: [],
+        modified: [{ type: 'MODIFIED' as const, name: 'Export', content: '### Requirement: Export\nModified content.\n\n#### Scenario: Test\n- **WHEN** test\n- **THEN** test' }],
+        removed: [{ type: 'REMOVED' as const, name: 'Export', content: '### Requirement: Export\n**Reason**: deprecated' }],
+        renamed: [],
+      };
+      const issues = validateDeltaSpec(delta);
+      expect(issues.some(i => i.includes('MODIFIED') && i.includes('REMOVED'))).toBe(true);
+    });
+
+    it('should detect MODIFIED+ADDED conflict', () => {
+      const delta = {
+        added: [{ type: 'ADDED' as const, name: 'Export', content: '### Requirement: Export\nNew content.' }],
+        modified: [{ type: 'MODIFIED' as const, name: 'Export', content: '### Requirement: Export\nModified content.\n\n#### Scenario: Test\n- **WHEN** test\n- **THEN** test' }],
+        removed: [],
+        renamed: [],
+      };
+      const issues = validateDeltaSpec(delta);
+      expect(issues.some(i => i.includes('MODIFIED') && i.includes('ADDED'))).toBe(true);
+    });
+
+    it('should detect ADDED+REMOVED conflict', () => {
+      const delta = {
+        added: [{ type: 'ADDED' as const, name: 'Export', content: '### Requirement: Export\nNew content.' }],
+        modified: [],
+        removed: [{ type: 'REMOVED' as const, name: 'Export', content: '### Requirement: Export\n**Reason**: deprecated' }],
+        renamed: [],
+      };
+      const issues = validateDeltaSpec(delta);
+      expect(issues.some(i => i.includes('ADDED') && i.includes('REMOVED'))).toBe(true);
+    });
+
+    it('should detect MODIFIED referencing RENAMED old name', () => {
+      const delta = {
+        added: [],
+        modified: [{ type: 'MODIFIED' as const, name: 'Old Name', content: '### Requirement: Old Name\nModified content.\n\n#### Scenario: Test\n- **WHEN** test\n- **THEN** test' }],
+        removed: [],
+        renamed: [{ type: 'RENAMED' as const, name: 'New Name', content: '### Requirement: New Name\n**FROM**: Old Name\n**TO**: New Name', meta: { from: 'Old Name', to: 'New Name' } }],
+      };
+      const issues = validateDeltaSpec(delta);
+      expect(issues.some(i => i.includes('必须引用新名称'))).toBe(true);
+    });
+
+    it('should detect ADDED colliding with RENAMED TO', () => {
+      const delta = {
+        added: [{ type: 'ADDED' as const, name: 'New Name', content: '### Requirement: New Name\nAdded content.' }],
+        modified: [],
+        removed: [],
+        renamed: [{ type: 'RENAMED' as const, name: 'New Name', content: '### Requirement: New Name\n**FROM**: Old Name\n**TO**: New Name', meta: { from: 'Old Name', to: 'New Name' } }],
+      };
+      const issues = validateDeltaSpec(delta);
+      expect(issues.some(i => i.includes('目标名称冲突'))).toBe(true);
+    });
   });
 
   describe('generateDeltaSpecTemplate', () => {
