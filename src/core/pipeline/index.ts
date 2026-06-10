@@ -31,3 +31,5 @@ export type { StageHandler } from './executor.js';
 export { PipelineExecutor } from './executor.js';
 
 export { PipelineGuardRunner } from './guard-runner.js';
+
+export { PipelineRunner, formatExecutionStatus, formatExecutionList } from './runner.js';

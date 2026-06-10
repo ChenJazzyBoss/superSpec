@@ -610,6 +610,94 @@ pipelineCmd
     console.log(`   ${nextStage.required ? '必需阶段' : '可选阶段'}`);
   });
 
+pipelineCmd
+  .command('run')
+  .description('运行管道（从 validate-spec 开始，自动执行可程序化阶段）')
+  .argument('<name>', 'spec 名称')
+  .option('--from <stage>', '从指定阶段开始执行')
+  .action(async (name: string, options: { from?: string }) => {
+    const { PipelineRunner, formatExecutionStatus, getStageGuidanceMap } = await import('../core/pipeline/runner.js');
+
+    const cwd = process.cwd();
+    const runner = new PipelineRunner(cwd);
+
+    try {
+      const record = await runner.run(name, { fromStage: options.from as any });
+      console.log(formatExecutionStatus(record));
+
+      // 如果管道在 AI 阶段暂停（pending），输出操作指引
+      const pendingStage = record.stages.find((s) => s.status === 'pending' || s.status === 'completed');
+      if (pendingStage) {
+        const guidanceMap = getStageGuidanceMap();
+        const guidance = guidanceMap[pendingStage.id as keyof typeof guidanceMap];
+        if (guidance && guidance.skillName) {
+          console.log(`\n📍 下一步操作指引:`);
+          console.log(`   阶段: ${pendingStage.id}`);
+          console.log(`   技能: ${guidance.skillName}`);
+          console.log(`   说明: ${guidance.description}`);
+          console.log(`   操作: ${guidance.nextCommand}`);
+        }
+      }
+    } catch (err) {
+      console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
+pipelineCmd
+  .command('status')
+  .description('查看管道执行状态')
+  .option('--exec <exec-id>', '指定执行 id')
+  .argument('[name]', 'spec 名称（查找最近的执行记录）')
+  .action(async (name?: string, options?: { exec?: string }) => {
+    const { PipelineRunner, formatExecutionStatus } = await import('../core/pipeline/runner.js');
+
+    const cwd = process.cwd();
+    const runner = new PipelineRunner(cwd);
+
+    const record = runner.getStatus(name, options?.exec);
+    if (!record) {
+      console.log('未找到管道执行记录。');
+      console.log('提示: 使用 superspec pipeline run <name> 开始一次新的管道执行。');
+      return;
+    }
+
+    console.log(formatExecutionStatus(record));
+  });
+
+pipelineCmd
+  .command('list')
+  .description('列出所有管道执行记录')
+  .action(async () => {
+    const { PipelineRunner, formatExecutionList } = await import('../core/pipeline/runner.js');
+
+    const cwd = process.cwd();
+    const runner = new PipelineRunner(cwd);
+
+    const records = runner.listExecutions();
+    console.log(formatExecutionList(records));
+  });
+
+pipelineCmd
+  .command('resume')
+  .description('恢复中断的管道执行')
+  .argument('<exec-id>', '执行 id')
+  .action(async (execId: string) => {
+    const { PipelineRunner, formatExecutionStatus } = await import('../core/pipeline/runner.js');
+
+    const cwd = process.cwd();
+    const runner = new PipelineRunner(cwd);
+
+    try {
+      const record = await runner.resume(execId);
+      console.log('管道已恢复执行:\n');
+      console.log(formatExecutionStatus(record));
+    } catch (err) {
+      console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
 // change 子命令
 const changeCmd = program.command('change').description('变更生命周期管理');
 
