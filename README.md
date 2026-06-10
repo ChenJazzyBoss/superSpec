@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-437%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-457%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -99,6 +99,8 @@ Initialize superSpec in your project.
 superspec init                  # Default setup
 superspec init --interactive    # Interactive configuration
 superspec init --ci             # Include GitHub Actions workflow
+superspec init --template web-api   # Use Web API template
+superspec init --list-templates     # List available templates
 ```
 
 Creates `.superspec/` directory structure, injects `CLAUDE.md`, copies templates and scripts.
@@ -377,7 +379,7 @@ Changes are recorded. Specs grow. History is preserved.
 | 🔄 **Delta merge** | Incremental spec changes, no full-file rewrites |
 | 🛡️ **Anti-hallucination** | Red flags, checklists, evidence verification |
 | 🔍 **SkillGuard** | Programmatic detection of AI skip patterns |
-| 📋 **Init Template** | Collect human context before spec generation |
+| 📋 **Init Template** | Collect human context before spec generation, 4 project-type templates (general/web-api/cli/library) |
 | 📦 **Multi-artifact validation** | Module list validation with circular dependency detection |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
 | 🔀 **Skill pipeline** | 7-stage DAG workflow with pre/post conditions, context passing, and retry |
@@ -472,7 +474,12 @@ superSpec/
 │   └── ci/                   # CI runner
 ├── templates/                # Project templates
 │   ├── spec-template.md      # Spec scaffold
-│   └── init-spec-template.md # Init Template for context collection
+│   ├── init-spec-template.md # Init Template for context collection
+│   └── init-templates/       # Project-type templates
+│       ├── general.md        # General project
+│       ├── web-api.md        # Web API project
+│       ├── cli.md            # CLI tool project
+│       └── library.md        # Library/SDK project
 ├── test/                     # Test suite
 └── dist/                     # Build output
 ```
