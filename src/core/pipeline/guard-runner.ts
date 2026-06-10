@@ -10,10 +10,9 @@
  * - onSubagentDelegation: 检查 SUBAGENT-STOP 标签
  */
 
-import { PipelineExecutor } from './executor.js';
-import type { StageHandler, StageId } from './types.js';
+import { PipelineExecutor, type StageHandler } from './executor.js';
+import type { StageId, PipelineExecution } from './types.js';
 import type { PipelineContextManager } from './context.js';
-import type { PipelineExecution } from './types.js';
 import { SkillGuard } from '../anti-rationalization/skill-guard.js';
 
 /**

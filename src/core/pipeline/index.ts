@@ -29,3 +29,5 @@ export { classifyFailure, shouldRetry, getRetryDelay } from './retry.js';
 
 export type { StageHandler } from './executor.js';
 export { PipelineExecutor } from './executor.js';
+
+export { PipelineGuardRunner } from './guard-runner.js';

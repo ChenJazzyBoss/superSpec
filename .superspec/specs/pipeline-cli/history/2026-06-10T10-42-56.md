@@ -1,0 +1,99 @@
+# Pipeline CLI 与 SkillGuard 运行时集成
+
+## Purpose
+
+将已有的 Pipeline 引擎（executor + context + conditions + retry）通过 CLI 命令暴露给用户和 AI，并将 SkillGuard 反幻觉系统的四个钩子集成到管道的阶段执行中，实现"技能协作管道 + 运行时反幻觉检查"的完整闭环。这是 superSpec 项目最核心的价值——不是一个个孤立的技能文件，而是有纪律的、可追溯的、反幻觉的技能执行管道。
+
+## Requirements
+
+### Requirement: Pipeline CLI 命令入口
+
+系统 SHALL 提供 `superspec pipeline` CLI 子命令，支持查看工作流定义和阶段状态。
+
+#### Scenario: 正常流程-查看默认工作流定义
+Given 用户执行 `superspec pipeline show`
+When 命令运行完成
+Then 输出包含默认工作流的 7 个阶段
+And 每个阶段显示名称、是否必需、依赖的上游阶段
+And 输出格式为可读的文本表格
+
+#### Scenario: 正常流程-查询阶段推荐下一步
+Given 用户执行 `superspec pipeline next brainstorm`
+When brainstorm 是工作流中的有效阶段
+Then 输出推荐的下一阶段为 generate-spec
+And 说明推荐原因（brainstorm 的下游依赖）
+
+#### Scenario: 边界条件-查询最后阶段无下一步
+Given 用户执行 `superspec pipeline next archive`
+When archive 是工作流的最后一个阶段
+Then 输出提示"已到达工作流末尾"
+And 退出码为 0
+
+#### Scenario: 异常场景-查询无效阶段报错
+Given 用户执行 `superspec pipeline next unknown-stage`
+When unknown-stage 不在工作流定义中
+Then 输出错误信息"未知阶段"
+And 退出码为 1
+
+### Requirement: SkillGuard 运行时集成
+
+系统 MUST 在管道的每个阶段执行时调用 SkillGuard 的钩子，实现运行时的反幻觉检查。
+
+#### Scenario: 正常流程-阶段执行前调用 beforeExecute
+Given 一个已注册 handler 的阶段且技能文件有红线表
+When PipelineExecutor 执行该阶段
+Then 调用 SkillGuard.beforeExecute() 检查技能文件的红线表和 HARD-GATE
+And beforeExecute 返回 allowed: true
+And 阶段正常执行
+
+#### Scenario: 异常场景-技能文件缺少红线表被拒绝
+Given 一个阶段的技能文件没有红线表
+When PipelineExecutor 尝试执行该阶段
+Then SkillGuard.beforeExecute() 返回 allowed: false
+And 阶段标记为 failed
+And 错误信息包含"技能配置缺少红线表"
+
+#### Scenario: 正常流程-阶段输出检测跳步模式
+Given 管道中某阶段的 handler 产生了输出
+When PipelineExecutor 收到阶段输出
+Then 调用 SkillGuard.onOutput() 检测红线匹配和跳步模式
+And 检测结果记录到阶段结果的 metadata 中
+
+#### Scenario: 正常流程-阶段完成时验证证据
+Given 管道中某阶段的 handler 声明完成且提供了有效证据
+When PipelineExecutor 检查后置条件
+Then 调用 SkillGuard.onCompletion() 验证完成声明的证据
+And 证据有效，阶段标记为 completed
+
+#### Scenario: 正常流程-子代理委托检查
+Given 管道中某阶段的技能文件包含 SUBAGENT-STOP 标签
+When 子代理尝试执行该阶段
+Then SkillGuard.onSubagentDelegation() 返回 true
+And 该阶段被跳过，状态标记为 skipped
+
+### Requirement: PipelineGuardRunner
+
+系统 SHALL 提供 PipelineGuardRunner 类，将 SkillGuard 和 PipelineExecutor 组合为统一的运行时。
+
+#### Scenario: 正常流程-创建并执行完整管道
+Given 注册了多个阶段 handler 的 PipelineGuardRunner
+When 调用 execute() 方法
+Then 各阶段按工作流顺序执行
+And 每个阶段都经过 SkillGuard 检查
+And 阶段间的 context 正确传递
+And 最终返回 PipelineExecution 记录
+
+#### Scenario: 异常场景-SkillGuard 检查失败时管道中断
+Given 管道中第二个阶段的 SkillGuard.beforeExecute() 返回不允许
+When PipelineGuardRunner 执行到该阶段
+Then 该阶段标记为 failed
+And 后续阶段不执行
+And 返回的 PipelineExecution 状态为 failed
+And 错误信息包含 SkillGuard 的 issues
+
+#### Scenario: 边界条件-从指定阶段开始执行
+Given 用户指定从 validate-spec 阶段开始执行
+When PipelineGuardRunner.execute() 传入 fromStage 参数
+Then brainstorm 和 generate-spec 阶段标记为 skipped
+And 从 validate-spec 开始正常执行后续阶段
+And 返回的执行记录包含 skipped 阶段
