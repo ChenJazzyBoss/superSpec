@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - AI 阶段（brainstorm、generate-spec 等）输出操作指引，等待完成后恢复
   - 执行记录持久化到 `.superspec/pipeline/<exec-id>.json`
 
-- **统一变更管道与多路径路由** — 借鉴 OpenSpec + cospowers
+- **统一变更管道与多路径路由** — 借鉴 OpenSpec
   - 变更目录生命周期管理：proposal → delta-spec → apply → archive
   - Markdown Delta Spec 解析器（ADDED/MODIFIED/REMOVED/RENAMED）
   - Specs Apply 合并引擎，支持 dry-run 模式

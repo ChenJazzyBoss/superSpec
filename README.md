@@ -459,7 +459,7 @@ Changes are recorded. Specs grow. History is preserved.
 | 🔀 **Skill pipeline** | 7-stage DAG workflow with pre/post conditions, context passing, and retry |
 | 🚀 **Pipeline run** | `pipeline run/status/list/resume` — auto-execute programmatic stages, persist execution records, resume from failures |
 | 📂 **Unified change model** | Change directory with proposal → delta spec → apply lifecycle (inspired by OpenSpec) |
-| 🧭 **Central router** | Brainstorm skill routes new features to unified pipeline, bugs to debug path (inspired by cospowers) |
+| 🧭 **Central router** | Brainstorm skill routes new features to unified pipeline, bugs to debug path |
 | 🔄 **Specs apply engine** | Merge delta specs (ADDED/MODIFIED/REMOVED/RENAMED) into main specs with dry-run validation |
 | 🛡️ **PipelineGuardRunner** | SkillGuard hooks integrated into pipeline execution: beforeExecute, onOutput, onCompletion |
 | 🧭 **Skill routing** | Every skill has a "Next Step" section, queryable via `pipeline next` |

@@ -459,7 +459,7 @@ superspec pipeline run batch-export
 | 🔀 **技能管道** | 7 阶段 DAG 工作流，前置/后置条件、上下文传递、重试策略 |
 | 🚀 **管道执行** | `pipeline run/status/list/resume` — 自动执行可程序化阶段，持久化执行记录，支持恢复 |
 | 📂 **统一变更模型** | 变更目录：proposal → delta spec → apply 生命周期（借鉴 OpenSpec） |
-| 🧭 **中央路由器** | Brainstorm 技能路由新功能到统一管道，Bug 走排障路径（借鉴 cospowers） |
+| 🧭 **中央路由器** | Brainstorm 技能路由新功能到统一管道，Bug 走排障路径 |
 | 🔄 **Specs 合并引擎** | 合并 delta spec（ADDED/MODIFIED/REMOVED/RENAMED）到主 spec，支持 dry-run |
 | 🛡️ **PipelineGuardRunner** | SkillGuard 钩子集成到管道执行：beforeExecute、onOutput、onCompletion |
 | 🧭 **技能路由** | 每个技能有"下一步"部分，可通过 `pipeline next` 查询 |
@@ -597,7 +597,7 @@ superSpec 站在两个优秀项目的肩膀上：
 
 **[OpenSpec](https://github.com/openspec-dev/openspec)** — specs/changes/archive 目录模型和行为契约 spec 格式，直接借鉴了 OpenSpec 的结构化规格管理方法。他们"spec 是活文档，不是一次性产物"的理念，塑造了 superSpec 的核心架构。delta spec 合并引擎和跨 section 冲突检测也借鉴了 OpenSpec 的设计。
 
-**[superpowers-zh](https://github.com/superpowers-dev/superpowers-zh)** — 运行时行为约束（XML 标签、反幻觉模式、子代理编排）受到了 superpowers-zh 的 AI 编码会话控制方法论的启发。中央路由器的多路径设计也借鉴了 cospowers 的复杂度评估和路由概念。
+**[superpowers-zh](https://github.com/superpowers-dev/superpowers-zh)** — 运行时行为约束（XML 标签、反幻觉模式、子代理编排）受到了 superpowers-zh 的 AI 编码会话控制方法论的启发。
 
 感谢两个项目的开源精神。🙏
 
