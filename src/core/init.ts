@@ -18,6 +18,13 @@ import {
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { injectClaudeMd } from './claude-md.js';
+import {
+  type TemplateType,
+  isValidTemplateType,
+  getTemplateFilePath,
+  loadTemplateContent,
+  listTemplates,
+} from './init-templates.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SUPERSPEC_ROOT = join(__dirname, '..', '..');
@@ -106,6 +113,8 @@ export interface InitOptions {
   language?: 'typescript' | 'python';
   /** 是否启用严格模式 */
   strict?: boolean;
+  /** 项目类型模板 */
+  template?: TemplateType;
 }
 
 /**
@@ -131,13 +140,30 @@ export async function collectInteractiveOptions(): Promise<InitOptions> {
   const strictAnswer = await ask('启用严格模式？WARNING 也视为错误 (y/N) [N]: ');
   const strict = strictAnswer.toLowerCase() === 'y';
 
-  const ciAnswer = await ask('生成 GitHub Actions CI workflow？(y/N) [N]: ');
+  // 模板类型选择
+  const templates = listTemplates();
+  console.log('\n项目类型模板：');
+  templates.forEach((t, i) => {
+    console.log(`  ${i + 1}. ${t.name} (${t.type}) — ${t.description}`);
+  });
+  console.log(`  ${templates.length + 1}. 跳过，使用默认通用模板`);
+
+  let template: TemplateType = 'general';
+  const templateAnswer = await ask(`\n请选择项目类型 [1-${templates.length + 1}] (默认 ${templates.length + 1}): `);
+  const templateIndex = parseInt(templateAnswer, 10);
+  if (templateIndex >= 1 && templateIndex <= templates.length) {
+    template = templates[templateIndex - 1].type;
+  } else if (templateAnswer.trim() !== '' && isNaN(templateIndex)) {
+    console.log('输入无效，使用通用模板。');
+  }
+
+  const ciAnswer = await ask('\n生成 GitHub Actions CI workflow？(y/N) [N]: ');
   const ci = ciAnswer.toLowerCase() === 'y';
 
   rl.close();
 
   console.log('');
-  return { projectName, language, strict, ci };
+  return { projectName, language, strict, template, ci };
 }
 
 /**
@@ -189,6 +215,20 @@ export function initProject(projectRoot: string, options: InitOptions = {}): {
     // session-start 需要可执行权限
     if (destRel.endsWith('session-start')) {
       chmodSync(destPath, 0o755);
+    }
+  }
+
+  // 2.5 复制项目类型模板（覆盖默认的 init-spec-template.md）
+  const templateType = options.template ?? 'general';
+  if (templateType !== 'general') {
+    // 非通用模板：将选中的模板写入 .superspec/templates/init-spec-template.md
+    try {
+      const templateContent = loadTemplateContent(templateType);
+      const initTemplateDest = join(projectRoot, '.superspec', 'templates', 'init-spec-template.md');
+      writeFileSync(initTemplateDest, templateContent, 'utf-8');
+      console.log(`已应用 "${templateType}" 类型模板。`);
+    } catch (e) {
+      console.warn(`警告: 无法加载模板 "${templateType}"，使用默认通用模板。`);
     }
   }
 

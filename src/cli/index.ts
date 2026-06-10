@@ -34,7 +34,27 @@ program
   .description('初始化 superSpec 项目骨架')
   .option('-i, --interactive', '交互式配置')
   .option('--ci', '生成 GitHub Actions CI workflow')
-  .action(async (options: { interactive?: boolean; ci?: boolean }) => {
+  .option('-t, --template <type>', '项目类型模板 (general/web-api/cli/library)')
+  .option('--list-templates', '列出所有可用模板类型')
+  .action(async (options: { interactive?: boolean; ci?: boolean; template?: string; listTemplates?: boolean }) => {
+    // --list-templates: 列出模板
+    if (options.listTemplates) {
+      const { formatTemplateList } = await import('../core/init-templates.js');
+      console.log(formatTemplateList());
+      return;
+    }
+
+    // --template 校验
+    if (options.template) {
+      const { isValidTemplateType, listTemplates } = await import('../core/init-templates.js');
+      if (!isValidTemplateType(options.template)) {
+        const templates = listTemplates();
+        console.error(`错误: 未知模板类型 "${options.template}"`);
+        console.error(`可用模板: ${templates.map((t) => t.type).join(', ')}`);
+        process.exit(1);
+      }
+    }
+
     const projectRoot = process.cwd();
 
     if (options.interactive) {
@@ -50,11 +70,15 @@ program
       for (const file of result.created) {
         console.log(`  ${file}`);
       }
-      console.log(`\n配置: 语言=${interactiveOptions.language}, 严格模式=${interactiveOptions.strict}`);
+      console.log(`\n配置: 语言=${interactiveOptions.language}, 严格模式=${interactiveOptions.strict}, 模板=${interactiveOptions.template ?? 'general'}`);
       console.log('\n使用 /generate-spec 开始生成 spec。');
     } else {
       console.log('正在初始化 superSpec...\n');
-      const result = initProject(projectRoot, { ci: options.ci });
+      const initOptions: Record<string, unknown> = { ci: options.ci };
+      if (options.template) {
+        initOptions.template = options.template;
+      }
+      const result = initProject(projectRoot, initOptions as Parameters<typeof initProject>[1]);
 
       if (result.skipped) return;
 
@@ -62,6 +86,9 @@ program
       console.log('已创建以下文件：');
       for (const file of result.created) {
         console.log(`  ${file}`);
+      }
+      if (options.template) {
+        console.log(`\n模板: ${options.template}`);
       }
       console.log('\n使用 /generate-spec 开始生成 spec。');
     }
