@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-457%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-511%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -246,6 +246,19 @@ superspec pipeline next validate-spec     # → write-plan
 superspec pipeline next archive           # → "reached end of workflow"
 ```
 
+### `superspec change`
+
+Manage change lifecycle (unified model for new features and modifications).
+
+```bash
+superspec change create <name>             # Create change directory with proposal
+superspec change create <name> --why "..." # With description
+superspec change list                      # List all changes
+superspec change status <name>             # Show change phase and capabilities
+superspec change apply <name>              # Merge delta specs into main specs
+superspec change apply <name> --dry-run    # Validate without writing
+```
+
 ### `superspec uninstall`
 
 Remove all superSpec files from project.
@@ -383,6 +396,9 @@ Changes are recorded. Specs grow. History is preserved.
 | 📦 **Multi-artifact validation** | Module list validation with circular dependency detection |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
 | 🔀 **Skill pipeline** | 7-stage DAG workflow with pre/post conditions, context passing, and retry |
+| 📂 **Unified change model** | Change directory with proposal → delta spec → apply lifecycle (inspired by OpenSpec) |
+| 🧭 **Central router** | Brainstorm skill routes new features to unified pipeline, bugs to debug path (inspired by cospowers) |
+| 🔄 **Specs apply engine** | Merge delta specs (ADDED/MODIFIED/REMOVED/RENAMED) into main specs with dry-run validation |
 | 🛡️ **PipelineGuardRunner** | SkillGuard hooks integrated into pipeline execution: beforeExecute, onOutput, onCompletion |
 | 🧭 **Skill routing** | Every skill has a "Next Step" section, queryable via `pipeline next` |
 | ⚙️ **Config layers** | Global → project → change, with priority merge |
