@@ -307,3 +307,4 @@ superSpec CI 校验结果
 - 使用 `subagent-dev` 开始子 Agent 驱动开发
 - 使用 `archive` 归档完成的变更
 - 使用 `pipeline next validate-spec` 查看推荐路径
+- 使用 `pipeline next validate-spec` 查看推荐路径
