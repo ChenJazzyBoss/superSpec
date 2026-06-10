@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-511%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-533%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -257,6 +257,17 @@ superspec change list                      # List all changes
 superspec change status <name>             # Show change phase and capabilities
 superspec change apply <name>              # Merge delta specs into main specs
 superspec change apply <name> --dry-run    # Validate without writing
+```
+
+### `superspec route`
+
+Evaluate user intent and recommend a path.
+
+```bash
+superspec route "add export button"          # → 🚀 Lightweight
+superspec route "implement full auth" -c 3   # → 📦 Full
+superspec route "modify export format"       # → 📦 Full (modification)
+superspec route "export feature crashed"     # → 🔧 Debug
 ```
 
 ### `superspec uninstall`
