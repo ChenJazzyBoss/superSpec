@@ -419,7 +419,15 @@ node .superspec/scripts/validate.js .superspec/specs/batch-export/spec.md --deep
 
 Claude creates a detailed plan, then implements each task with dual review.
 
-### 4. Archive
+### 4. Run the pipeline
+
+```bash
+superspec pipeline run batch-export
+```
+
+Automatically executes programmatic stages (validate-spec, archive) and guides you through AI stages (write-plan, implement, verify). Execution state is persisted — you can resume anytime.
+
+### 5. Archive
 
 ```
 /superspec:archive
@@ -474,6 +482,33 @@ flowchart LR
 ```
 
 Each stage has pre-conditions, post-conditions, and retry strategies. The pipeline is deterministic — not vibes.
+
+### Running the pipeline
+
+Use `superspec pipeline run` to automate the workflow:
+
+```bash
+# Start pipeline (auto-runs validate-spec)
+superspec pipeline run batch-export
+
+# Output shows stage status + next step guidance
+# 📋 管道执行: batch-export-20260611100000
+#    ✅ validate-spec     completed   (150ms)
+#    ⏳ write-plan        pending     — needs AI
+#
+# 📍 下一步操作指引:
+#    阶段: write-plan
+#    技能: write-plan
+#    操作: 计划生成后，运行 superspec pipeline run <name> --from implement 继续管道
+
+# After AI completes write-plan, resume pipeline
+superspec pipeline run batch-export --from implement
+
+# Check pipeline status anytime
+superspec pipeline status batch-export
+```
+
+Programmatic stages (validate-spec, archive) run automatically. AI stages output guidance and wait for completion.
 
 ### PipelineGuardRunner
 
@@ -530,8 +565,19 @@ superSpec/
 │   │   ├── diagram-generator.ts  # Auto Mermaid diagrams
 │   │   ├── source-tracker.ts # Spec-code sync tracking
 │   │   ├── delta-merge.ts    # Incremental spec updates
+│   │   ├── change-lifecycle.ts   # Change directory management
+│   │   ├── delta-spec-parser.ts  # Markdown delta spec parser
+│   │   ├── specs-apply.ts    # Delta → main spec merge engine
+│   │   ├── route-evaluator.ts    # Intent detection & path routing
 │   │   ├── anti-rationalization/ # SkillGuard system
 │   │   ├── pipeline/         # Skill orchestration pipeline
+│   │   │   ├── executor.ts   # Pipeline execution engine
+│   │   │   ├── runner.ts     # CLI runtime (run/status/list/resume)
+│   │   │   ├── guard-runner.ts   # SkillGuard integration
+│   │   │   ├── context.ts    # Stage-to-stage context passing
+│   │   │   ├── conditions.ts # Pre/post condition checks
+│   │   │   ├── retry.ts      # Failure classification & retry
+│   │   │   └── workflow.ts   # Default 7-stage DAG definition
 │   │   ├── rules/            # Validation rules
 │   │   ├── diagrams/         # Diagram generators
 │   │   └── config/           # Configuration system
@@ -540,12 +586,13 @@ superSpec/
 ├── templates/                # Project templates
 │   ├── spec-template.md      # Spec scaffold
 │   ├── init-spec-template.md # Init Template for context collection
+│   ├── change/               # Change lifecycle templates
 │   └── init-templates/       # Project-type templates
 │       ├── general.md        # General project
 │       ├── web-api.md        # Web API project
 │       ├── cli.md            # CLI tool project
 │       └── library.md        # Library/SDK project
-├── test/                     # Test suite
+├── test/                     # Test suite (558 tests)
 └── dist/                     # Build output
 ```
 
