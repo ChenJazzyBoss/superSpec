@@ -730,4 +730,25 @@ changeCmd
     }
   });
 
+// route 命令：路由评估
+program
+  .command('route')
+  .description('评估用户意图并推荐路径')
+  .argument('<input>', '用户的原始输入')
+  .option('-c, --capabilities <number>', '涉及的 capability 数量', '1')
+  .option('-r, --requirements <number>', '预估的 requirement 数量', '1')
+  .option('--existing-spec', '是否涉及已有 spec')
+  .action(async (input: string, options: { capabilities?: string; requirements?: string; existingSpec?: boolean }) => {
+    const { detectIntent, evaluateRoute, formatRouteDecision } = await import('../core/route-evaluator.js');
+
+    const intent = detectIntent(input);
+    const decision = evaluateRoute(intent, {
+      capabilityCount: parseInt(options.capabilities ?? '1', 10),
+      affectsExistingSpec: options.existingSpec ?? false,
+      estimatedRequirements: parseInt(options.requirements ?? '1', 10),
+    });
+
+    console.log(formatRouteDecision(decision));
+  });
+
 program.parse();
