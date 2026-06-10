@@ -84,16 +84,20 @@ superspec changes
 3. 合并或拆分变更
 4. 重新归档
 
-## delta → specs 合并
+## delta → specs 合并（统一变更模型）
 
-归档时，delta 的变更内容会自动合并到 `.superspec/specs/` 中对应的能力 spec：
+归档时，变更目录下的 delta spec 会自动合并到 `.superspec/specs/` 中对应的能力 spec。
 
-- **ADDED**：在目标章节后追加新内容
-- **MODIFIED**：替换目标章节的内容
-- **REMOVED**：删除目标章节及其子章节
-- **RENAMED**：重命名章节标题
+合并使用 `superspec change apply <name>` 命令，按以下顺序执行：
 
-合并后会自动运行 strict 校验，确保 specs/ 的完整性不受影响。
+1. **RENAMED** — 重命名已有 requirement
+2. **REMOVED** — 删除已有 requirement
+3. **MODIFIED** — 替换已有 requirement 的内容
+4. **ADDED** — 追加新的 requirement
+
+合并后会自动校验主 spec，确保完整性不受影响。
+
+**关键原则：** delta spec 存在于变更目录中（不直接修改主 spec），只有 archive 时才合并。
 
 ## 跳步红线
 
@@ -101,18 +105,18 @@ superspec changes
 |----------|------|
 | "先归档后面再验证" | 不校验就归档，specs/ 会被破坏 |
 | "这个变更很小不需要归档" | 小变更也需要审计记录 |
-| "直接改 spec 更快" | 跳过归档会丢失历史 |
+| "直接改 spec 更快" | 主 spec 只能通过 archive apply 更新 |
 | "delta 合并太麻烦，手动改 specs" | 手动改无法追溯变更来源 |
 | "校验失败了但内容没问题，先归档" | 校验失败说明格式或结构有问题 |
 
 ## 完成检查清单
 
 - [ ] 所有任务已完成并通过审查
-- [ ] delta.json 格式正确，包含所有变更操作
-- [ ] delta 已合并到 specs/ 中对应的能力 spec
-- [ ] 合并后 specs/ 通过 strict 校验（0 errors, 0 warnings）
+- [ ] delta spec 在变更目录中（.superspec/changes/<name>/specs/）
+- [ ] dry-run 校验通过（`superspec change apply <name> --dry-run`）
+- [ ] 执行 apply 合并 delta 到主 spec
+- [ ] 合并后主 spec 通过校验（valid: true）
 - [ ] 归档命令执行成功
-- [ ] changes/ 目录中该变更已移除或标记为已归档
 
 ## 下一步
 

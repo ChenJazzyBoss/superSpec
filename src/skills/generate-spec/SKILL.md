@@ -58,19 +58,22 @@ flowchart TB
 
 ## 工作流程
 
-1. **收集背景情报** — 检查 `.superspec/specs/<功能名>/init.md` 是否存在
+1. **检查变更目录** — 检查 `.superspec/changes/<功能名>/` 是否存在
+   - 存在 → 读取 proposal.md，理解变更范围
+   - 不存在 → 提示用户先使用 brainstorm 创建变更
+2. **收集背景情报** — 检查 `.superspec/specs/<功能名>/init.md` 是否存在
    - 存在 → 读取并理解背景信息
    - 不存在 → 从 `templates/init-spec-template.md` 复制模板，提示用户填写
    - **至少 §1 或 §2 需要填写才能继续**
-2. **理解需求** — 结合背景情报，与用户确认需求的范围和边界
-3. **读取模板** — 读取 `.superspec/templates/spec-template.md` 作为格式参考
-4. **生成 spec** — 按模板格式，将需求分解为：
-   - Purpose（至少 50 字，说明为什么需要这个功能）
-   - Requirements（每个需求必须包含 SHALL 或 MUST）
-   - Scenarios（每个需求至少 2 个场景：正常流程 + 异常/边界）
-5. **嵌入图表** — 使用图表集成器在 spec 中嵌入任务分解图，将 `<!-- DIAGRAM:flowchart -->` 占位符替换为 Mermaid 图表代码
-6. **写入文件** — 将 spec 写入 `.superspec/specs/<功能名>/spec.md`
-7. **运行校验** — 执行 `node .superspec/scripts/validate.js .superspec/specs/<功能名>/spec.md`
+3. **理解需求** — 结合背景情报，与用户确认需求的范围和边界
+4. **读取模板** — 读取 `.superspec/templates/spec-template.md` 作为格式参考
+5. **生成 delta spec** — 将需求分解为 Markdown delta spec 格式：
+   - Purpose（至少 50 字）
+   - `## ADDED Requirements`（每个需求必须包含 SHALL 或 MUST）
+   - 每个 Requirement 下至少 2 个 Scenario（正常 + 异常/边界）
+6. **写入变更目录** — 将 delta spec 写入 `.superspec/changes/<功能名>/specs/<capability>/spec.md`
+   - **不直接修改主 spec**（.superspec/specs/）
+7. **dry-run 校验** — 执行 `superspec change apply <功能名> --dry-run` 校验合并结果
 8. **修正循环** — 如果校验失败，根据错误修正，重新校验，直到通过
 
 ## 红线
@@ -91,12 +94,13 @@ flowchart TB
 - [ ] 每个需求至少 2 个场景（正常 + 异常/边界）
 - [ ] Purpose 至少 50 字
 - [ ] 没有模糊词汇（尽快、多种、适当、等等）
-- [ ] 图表已嵌入 spec
-- [ ] `superspec validate` 通过（valid: true, 0 errors）
+- [ ] delta spec 已写入变更目录（.superspec/changes/<name>/specs/）
+- [ ] `superspec change apply <name> --dry-run` 通过
 
 ## 下一步
 
-spec 生成并通过校验后，推荐：
-- **使用 `validate-spec`** 对 spec 进行完整校验（推荐）
-- 使用 `update-spec` 修改已有 spec
+delta spec 生成并通过校验后，推荐：
+- **使用 `validate-spec`** 对 delta spec 进行完整校验（推荐）
+- **使用 `write-plan`** 生成实现计划（推荐）
+- 使用 `superspec change status <name>` 查看变更状态
 - 使用 `pipeline next generate-spec` 查看推荐路径
