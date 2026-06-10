@@ -35,9 +35,11 @@ superSpec sits between your intent and Claude's code. It forces a structured spe
 
 ```mermaid
 flowchart LR
-    You["You"] -- batch export --> SS["superSpec"]
-    SS -- spec --> Claude["Claude Code"]
-    Claude -- code --> You
+    You["You"] -- "intent" --> Route["superSpec<br/>Route Evaluator"]
+    Route -- "spec" --> Validate["Validate<br/>+ SkillGuard"]
+    Validate -- "verified spec" --> Claude["Claude Code"]
+    Claude -- "code + evidence" --> Verify["Verify"]
+    Verify -- "archive" --> Specs["Living Specs"]
 ```
 
 ## Quick start
@@ -477,11 +479,28 @@ Changes are recorded. Specs grow. History is preserved.
 ## The workflow
 
 ```mermaid
-flowchart LR
-    brainstorm --> spec --> validate --> plan --> implement --> verify --> archive
+flowchart TD
+    User["👤 User Input"] --> Router["🧭 Route Evaluator"]
+    Router -->|"🚀 Lightweight<br/>(simple feature)"| Spec["📋 generate-spec"]
+    Router -->|"📦 Full<br/>(complex / change)"| Change["📂 Change Dir<br/>proposal → delta-spec"]
+    Router -->|"🔧 Debug<br/>(bug / failure)"| Debug["🔍 debug"]
+
+    Change --> Spec
+    Spec --> Validate["✅ validate-spec<br/>(auto)"]
+    Validate -->|pass| Plan["📝 write-plan"]
+    Validate -->|fail| Spec
+    Plan --> Implement["🔨 implement"]
+    Implement --> Verify["🧪 verify"]
+    Verify -->|pass| Archive["📦 archive<br/>(auto)"]
+    Verify -->|fail| Implement
+
+    style Router fill:#f9f,stroke:#333
+    style Validate fill:#9f9,stroke:#333
+    style Archive fill:#9f9,stroke:#333
+    style Debug fill:#ff9,stroke:#333
 ```
 
-Each stage has pre-conditions, post-conditions, and retry strategies. The pipeline is deterministic — not vibes.
+Three adaptive paths based on complexity assessment. Programmatic stages (validate-spec, archive) run automatically via `pipeline run`. AI stages output guidance and wait for completion.
 
 ### Running the pipeline
 
