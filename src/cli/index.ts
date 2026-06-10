@@ -610,4 +610,124 @@ pipelineCmd
     console.log(`   ${nextStage.required ? '必需阶段' : '可选阶段'}`);
   });
 
+// change 子命令
+const changeCmd = program.command('change').description('变更生命周期管理');
+
+changeCmd
+  .command('create')
+  .description('创建变更目录和 proposal')
+  .argument('<name>', '变更名称（kebab-case）')
+  .option('--why <reason>', '变更原因')
+  .option('--what <changes>', '变更内容')
+  .action(async (name: string, options: { why?: string; what?: string }) => {
+    const { createChange } = await import('../core/change-lifecycle.js');
+
+    const cwd = process.cwd();
+
+    try {
+      const proposal = {
+        why: options.why ?? '未指定',
+        whatChanges: options.what ?? '未指定',
+        newCapabilities: [],
+        modifiedCapabilities: [],
+        impact: '待评估',
+      };
+
+      const dir = createChange(cwd, name, proposal);
+      console.log(`✅ 变更目录已创建: ${dir}`);
+      console.log(`   下一步: 编辑 proposal.md 或使用 generate-spec 生成 delta spec`);
+    } catch (err) {
+      console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
+changeCmd
+  .command('status')
+  .description('查询变更状态')
+  .argument('<name>', '变更名称')
+  .action(async (name: string) => {
+    const { getChangeInfo, formatChangeInfo } = await import('../core/change-lifecycle.js');
+
+    const cwd = process.cwd();
+
+    try {
+      const info = getChangeInfo(cwd, name);
+      console.log(formatChangeInfo(info));
+    } catch (err) {
+      console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
+changeCmd
+  .command('apply')
+  .description('将变更的 delta spec 合并到主 spec')
+  .argument('<name>', '变更名称')
+  .option('--dry-run', '仅校验不写入')
+  .action(async (name: string, options: { dryRun?: boolean }) => {
+    const { applySpecs } = await import('../core/specs-apply.js');
+
+    const cwd = process.cwd();
+
+    try {
+      console.log(`${options.dryRun ? '校验' : '应用'}变更: ${name}\n`);
+      const result = await applySpecs(cwd, name, { dryRun: options.dryRun });
+
+      if (result.noChanges) {
+        console.log('没有找到待应用的 delta spec。');
+        return;
+      }
+
+      for (const cap of result.capabilities) {
+        console.log(`  ${options.dryRun ? '[dry-run]' : '✅'} ${cap.capability}:`);
+        if (cap.isNew) console.log(`    新建 spec`);
+        if (cap.counts.added) console.log(`    + ${cap.counts.added} added`);
+        if (cap.counts.modified) console.log(`    ~ ${cap.counts.modified} modified`);
+        if (cap.counts.removed) console.log(`    - ${cap.counts.removed} removed`);
+        if (cap.counts.renamed) console.log(`    → ${cap.counts.renamed} renamed`);
+      }
+
+      console.log(`\n总计: +${result.totals.added} ~${result.totals.modified} -${result.totals.removed} →${result.totals.renamed}`);
+    } catch (err) {
+      console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      process.exit(1);
+    }
+  });
+
+changeCmd
+  .command('list')
+  .description('列出所有变更')
+  .action(async () => {
+    const { listAllChanges } = await import('../core/change-lifecycle.js');
+
+    const cwd = process.cwd();
+    const changes = listAllChanges(cwd);
+
+    if (changes.length === 0) {
+      console.log('暂无进行中的变更。');
+      return;
+    }
+
+    console.log(`进行中的变更 (${changes.length}):\n`);
+    const phaseLabel: Record<string, string> = {
+      proposal: '📋 提案',
+      spec: '📄 Spec',
+      plan: '📝 计划',
+      implement: '🔨 实施',
+      verify: '✅ 验证',
+      ready: '📦 就绪',
+    };
+
+    for (const change of changes) {
+      const phase = phaseLabel[change.phase] ?? change.phase;
+      console.log(`  ${change.name}`);
+      console.log(`    阶段: ${phase}`);
+      if (change.capabilities.length > 0) {
+        console.log(`    Capabilities: ${change.capabilities.join(', ')}`);
+      }
+      console.log('');
+    }
+  });
+
 program.parse();

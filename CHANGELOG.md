@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **统一变更管道与多路径路由** — 借鉴 OpenSpec + cospowers
+  - 变更目录生命周期管理：proposal → delta-spec → apply → archive
+  - Markdown Delta Spec 解析器（ADDED/MODIFIED/REMOVED/RENAMED）
+  - Specs Apply 合并引擎，支持 dry-run 模式
+  - CLI 子命令：`superspec change create/status/apply/list`
+  - brainstorm 技能重构为中央路由器（新功能走统一路径，Bug 走排障路径）
+  - generate-spec/update-spec 引导向 change 目录（不直接修改主 spec）
+
 - **多项目类型 Init Template** (`--template <type>`)
   - 4 种项目类型模板：general（通用）、web-api（Web API）、cli（命令行工具）、library（库/SDK）
   - `superspec init --template web-api` 指定模板类型
