@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-383%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-437%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -211,6 +211,39 @@ superspec validate-modules modules.md --json             # JSON output
 
 Checks module structure, detects circular dependencies, validates naming conventions.
 
+### `superspec pipeline show`
+
+Display the default workflow definition.
+
+```bash
+superspec pipeline show
+```
+
+Output:
+```
+📋 superSpec 默认工作流
+
+  阶段              类型     依赖
+  ──────────────── ──────── ──────────────────
+  brainstorm        可选     —
+  generate-spec     必需     brainstorm
+  validate-spec     必需     generate-spec
+  write-plan        必需     validate-spec
+  implement         必需     write-plan
+  verify            必需     implement
+  archive           必需     verify
+```
+
+### `superspec pipeline next <stage>`
+
+Query the recommended next step for a given stage.
+
+```bash
+superspec pipeline next brainstorm        # → generate-spec
+superspec pipeline next validate-spec     # → write-plan
+superspec pipeline next archive           # → "reached end of workflow"
+```
+
 ### `superspec uninstall`
 
 Remove all superSpec files from project.
@@ -347,6 +380,9 @@ Changes are recorded. Specs grow. History is preserved.
 | 📋 **Init Template** | Collect human context before spec generation |
 | 📦 **Multi-artifact validation** | Module list validation with circular dependency detection |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
+| 🔀 **Skill pipeline** | 7-stage DAG workflow with pre/post conditions, context passing, and retry |
+| 🛡️ **PipelineGuardRunner** | SkillGuard hooks integrated into pipeline execution: beforeExecute, onOutput, onCompletion |
+| 🧭 **Skill routing** | Every skill has a "Next Step" section, queryable via `pipeline next` |
 | ⚙️ **Config layers** | Global → project → change, with priority merge |
 | 📦 **Archive system** | Full change lifecycle: draft → in-progress → review → done |
 | 🧪 **Test generation** | TypeScript (vitest) and Python (pytest) skeletons |
@@ -371,6 +407,19 @@ flowchart LR
 ```
 
 Each stage has pre-conditions, post-conditions, and retry strategies. The pipeline is deterministic — not vibes.
+
+### PipelineGuardRunner
+
+The pipeline integrates SkillGuard at runtime. Every stage execution goes through anti-hallucination checks:
+
+```
+Stage starts → SkillGuard.beforeExecute() → check red flag table & HARD-GATE
+Stage runs   → handler(context)
+Stage output → SkillGuard.onOutput()      → detect skip patterns & red flags
+Stage ends   → SkillGuard.onCompletion()  → verify evidence
+```
+
+If a skill file lacks a red flag table, the stage is **blocked** — not warned, blocked.
 
 ## Anti-hallucination design
 
@@ -415,6 +464,7 @@ superSpec/
 │   │   ├── source-tracker.ts # Spec-code sync tracking
 │   │   ├── delta-merge.ts    # Incremental spec updates
 │   │   ├── anti-rationalization/ # SkillGuard system
+│   │   ├── pipeline/         # Skill orchestration pipeline
 │   │   ├── rules/            # Validation rules
 │   │   ├── diagrams/         # Diagram generators
 │   │   └── config/           # Configuration system
