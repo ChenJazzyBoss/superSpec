@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Pipeline Run 命令** — 让管道引擎真正可执行
+  - `superspec pipeline run <name>` 从 validate-spec 开始自动执行可程序化阶段
+  - `superspec pipeline run <name> --from <stage>` 从指定阶段恢复执行
+  - `superspec pipeline status [name]` 查看管道执行状态
+  - `superspec pipeline list` 列出所有执行记录
+  - `superspec pipeline resume <exec-id>` 恢复中断的管道执行
+  - 可程序化阶段（validate-spec、archive）自动执行，无需人工干预
+  - AI 阶段（brainstorm、generate-spec 等）输出操作指引，等待完成后恢复
+  - 执行记录持久化到 `.superspec/pipeline/<exec-id>.json`
+
 - **统一变更管道与多路径路由** — 借鉴 OpenSpec + cospowers
   - 变更目录生命周期管理：proposal → delta-spec → apply → archive
   - Markdown Delta Spec 解析器（ADDED/MODIFIED/REMOVED/RENAMED）

@@ -7,7 +7,7 @@
 Turn natural language into executable specifications. Catch AI hallucinations before they become bugs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-533%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-558%20passed-brightgreen)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)]()
 
 English | [中文](./README.zh-CN.md)
@@ -246,6 +246,43 @@ superspec pipeline next validate-spec     # → write-plan
 superspec pipeline next archive           # → "reached end of workflow"
 ```
 
+### `superspec pipeline run <name>`
+
+Run the pipeline for a spec — auto-executes programmatic stages (validate-spec, archive) and outputs guidance for AI stages.
+
+```bash
+superspec pipeline run batch-export                     # Run from validate-spec
+superspec pipeline run batch-export --from write-plan   # Resume from a specific stage
+```
+
+Execution records are persisted to `.superspec/pipeline/<exec-id>.json`.
+
+### `superspec pipeline status [name]`
+
+View pipeline execution status.
+
+```bash
+superspec pipeline status               # Latest execution
+superspec pipeline status batch-export  # Latest for this spec
+superspec pipeline status --exec <id>   # By execution id
+```
+
+### `superspec pipeline list`
+
+List all pipeline execution records.
+
+```bash
+superspec pipeline list
+```
+
+### `superspec pipeline resume <exec-id>`
+
+Resume a failed pipeline execution from the failed stage.
+
+```bash
+superspec pipeline resume batch-export-20260611100000
+```
+
 ### `superspec change`
 
 Manage change lifecycle (unified model for new features and modifications).
@@ -407,6 +444,7 @@ Changes are recorded. Specs grow. History is preserved.
 | 📦 **Multi-artifact validation** | Module list validation with circular dependency detection |
 | 🤖 **Subagent pipeline** | Implement → spec-check → code-review per task |
 | 🔀 **Skill pipeline** | 7-stage DAG workflow with pre/post conditions, context passing, and retry |
+| 🚀 **Pipeline run** | `pipeline run/status/list/resume` — auto-execute programmatic stages, persist execution records, resume from failures |
 | 📂 **Unified change model** | Change directory with proposal → delta spec → apply lifecycle (inspired by OpenSpec) |
 | 🧭 **Central router** | Brainstorm skill routes new features to unified pipeline, bugs to debug path (inspired by cospowers) |
 | 🔄 **Specs apply engine** | Merge delta specs (ADDED/MODIFIED/REMOVED/RENAMED) into main specs with dry-run validation |
