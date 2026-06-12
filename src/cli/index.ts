@@ -29,6 +29,19 @@ program
   .description('AI-native spec management tool for Claude Code')
   .version(getVersion());
 
+/**
+ * 格式化 CLAUDE.md 处理状态提示
+ */
+function formatClaudeMdStatus(status: 'created' | 'updated' | 'appended' | undefined): string {
+  if (!status) return '';
+  const labels: Record<string, string> = {
+    created: '🆕 已创建 CLAUDE.md 并注入 superSpec 上下文',
+    updated: '🔄 CLAUDE.md 已存在，已更新 superSpec 哨兵内容',
+    appended: '📎 CLAUDE.md 已存在，已在末尾追加 superSpec 上下文',
+  };
+  return labels[status] ?? '';
+}
+
 program
   .command('init')
   .description('初始化 superSpec 项目骨架')
@@ -70,6 +83,10 @@ program
       for (const file of result.created) {
         console.log(`  ${file}`);
       }
+      const claudeMdHint = formatClaudeMdStatus(result.claudeMdStatus);
+      if (claudeMdHint) {
+        console.log(`\n${claudeMdHint}`);
+      }
       console.log(`\n配置: 语言=${interactiveOptions.language}, 严格模式=${interactiveOptions.strict}, 模板=${interactiveOptions.template ?? 'general'}`);
       console.log('\n使用 /generate-spec 开始生成 spec。');
     } else {
@@ -86,6 +103,10 @@ program
       console.log('已创建以下文件：');
       for (const file of result.created) {
         console.log(`  ${file}`);
+      }
+      const claudeMdHint = formatClaudeMdStatus(result.claudeMdStatus);
+      if (claudeMdHint) {
+        console.log(`\n${claudeMdHint}`);
       }
       if (options.template) {
         console.log(`\n模板: ${options.template}`);
@@ -724,7 +745,13 @@ changeCmd
 
       const dir = createChange(cwd, name, proposal);
       console.log(`✅ 变更目录已创建: ${dir}`);
-      console.log(`   下一步: 编辑 proposal.md 或使用 generate-spec 生成 delta spec`);
+      console.log(`\n📋 已自动生成以下文件：`);
+      console.log(`   - proposal.md  — 变更提案`);
+      console.log(`   - init.md      — 背景情报模板`);
+      console.log(`\n💡 建议下一步：`);
+      console.log(`   1. 填写 ${dir}/init.md 收集背景信息（§1 或 §2 至少填一项）`);
+      console.log(`   2. 运行 /generate-spec 生成结构化 spec`);
+      console.log(`   3. 或直接编辑 proposal.md 补充变更详情`);
     } catch (err) {
       console.error(`错误: ${err instanceof Error ? err.message : '未知错误'}`);
       process.exit(1);

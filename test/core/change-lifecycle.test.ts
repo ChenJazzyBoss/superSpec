@@ -47,6 +47,17 @@ describe('change-lifecycle', () => {
       expect(() => createChange(TEST_ROOT, 'batch-export', sampleProposal)).toThrow('已存在');
     });
 
+    it('should auto-create init.md template', () => {
+      const dir = createChange(TEST_ROOT, 'init-test', sampleProposal);
+      const initPath = join(dir, 'init.md');
+      expect(existsSync(initPath)).toBe(true);
+      const content = require('fs').readFileSync(initPath, 'utf-8');
+      expect(content).toContain('背景情报简报');
+      expect(content).toContain('init-test');
+      expect(content).toContain('§1 需求描述');
+      expect(content).toContain('§2 目标用户');
+    });
+
     it('should generate proposal.md with correct sections', () => {
       createChange(TEST_ROOT, 'batch-export', sampleProposal);
       const proposalPath = join(TEST_ROOT, '.superspec', 'changes', 'batch-export', 'proposal.md');

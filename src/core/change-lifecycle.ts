@@ -88,6 +88,10 @@ export function createChange(
   const proposalContent = generateProposalMarkdown(name, proposal);
   writeFileSync(join(changeDir, 'proposal.md'), proposalContent, 'utf-8');
 
+  // 自动创建 init.md 背景情报模板
+  const initContent = generateInitTemplate(name);
+  writeFileSync(join(changeDir, 'init.md'), initContent, 'utf-8');
+
   return changeDir;
 }
 
@@ -309,4 +313,69 @@ export function formatChangeInfo(info: ChangeInfo): string {
   }
 
   return lines.join('\n');
+}
+
+/**
+ * 生成 init.md 背景情报模板
+ *
+ * 自动创建到变更目录，引导用户填写背景信息，
+ * 帮助 AI 生成更高质量的 spec。
+ */
+function generateInitTemplate(name: string): string {
+  return `# 背景情报简报 — ${name}
+
+> 在开始生成 spec 之前，AI 会读取此文件收集上下文。
+> §1 和 §2 至少填一项即可继续。其他节为选填。
+>
+> **为什么需要这个文件？**
+> AI 无法从代码库中获取人类大脑中的知识——业务动机、历史决策、架构约束、领域术语。
+> 这些信息对生成高质量的 spec 至关重要。
+
+---
+
+## §1 需求描述 ⭐强烈建议提供
+
+<!-- 粘贴或描述本次要实现的核心功能/业务价值 -->
+<!-- 支持任意格式：文字描述、文件路径、PRD 摘要、会议记录 -->
+<!-- AI 会基于此拆解为 Purpose + Requirements + Scenarios -->
+
+---
+
+## §2 目标用户 ⭐建议提供
+
+<!-- 这个功能面向哪些用户角色？ -->
+<!-- AI 会用这些角色写 Given/When/Then 格式的场景 -->
+
+---
+
+## §3 关键业务场景（选填）
+
+<!-- 核心使用场景，用自己的语言描述，不需要 Given/When/Then 格式 -->
+<!-- AI 会将这些场景转化为结构化的 Requirement 和 Scenario -->
+
+---
+
+## §4 领域术语约定（选填）
+
+<!-- 表格格式：业务术语 | 标准名称 | 说明 -->
+<!-- 避免 AI 用不同名称指代同一概念 -->
+
+| 业务术语 | 标准名称 | 说明 |
+|---------|---------|------|
+| | | |
+
+---
+
+## §5 约束与不做的事（选填）
+
+<!-- 本次迭代明确不包含什么？有什么技术约束？ -->
+<!-- 明确排除项，防止范围蔓延 -->
+
+---
+
+## §6 参考资料（选填）
+
+<!-- 竞品分析、历史设计文档、相关 spec 路径 -->
+<!-- AI 会参考这些资料丰富 spec 内容 -->
+`;
 }

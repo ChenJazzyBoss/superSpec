@@ -4,6 +4,10 @@
  * 将 Markdown 格式的 spec 文件解析为结构化数据。
  * 核心能力：Code Fence Masking、标题层级解析、Spec 结构提取。
  * 参考：OpenSpec markdown-parser.ts（裁剪版，只保留 Spec 解析）
+ *
+ * Delta Spec 支持：
+ * 标题可以是 ## ADDED Requirements、## MODIFIED Requirements 等，
+ * 解析器会自动规范化前缀，映射到标准的 Requirements section。
  */
 
 import type { Spec, Requirement, Scenario } from './spec-schema.js';
@@ -13,6 +17,32 @@ interface Section {
   title: string;
   content: string;
   children: Section[];
+}
+
+/**
+ * Delta spec 标题前缀
+ *
+ * OpenSpec schema.yaml 定义的 4 种 delta 操作：
+ * ADDED / MODIFIED / REMOVED / RENAMED
+ */
+const DELTA_PREFIXES = ['ADDED', 'MODIFIED', 'REMOVED', 'RENAMED'];
+
+/**
+ * 规范化 delta spec 标题
+ *
+ * 将 "ADDED Requirements" → "Requirements"
+ * 将 "MODIFIED Purpose" → "Purpose"
+ * 无前缀的标题原样返回（向后兼容）
+ */
+function normalizeDeltaTitle(title: string): string {
+  const upperTitle = title.toUpperCase();
+  for (const prefix of DELTA_PREFIXES) {
+    // 匹配 "PREFIX SectionName" 格式（不区分大小写）
+    if (upperTitle.startsWith(prefix + ' ')) {
+      return title.slice(prefix.length + 1);
+    }
+  }
+  return title;
 }
 
 /**
@@ -120,9 +150,15 @@ function getContentUntilNextHeader(
   return contentLines.join('\n').trim();
 }
 
+/**
+ * 在 sections 中查找指定标题的 section
+ *
+ * 支持 delta spec 标题前缀：
+ * 查找 "Requirements" 时，也能匹配 "ADDED Requirements"、"MODIFIED Requirements" 等。
+ */
 function findSection(sections: Section[], title: string): Section | undefined {
   for (const section of sections) {
-    if (section.title.toLowerCase() === title.toLowerCase()) return section;
+    if (normalizeDeltaTitle(section.title).toLowerCase() === title.toLowerCase()) return section;
     const child = findSection(section.children, title);
     if (child) return child;
   }
@@ -203,3 +239,8 @@ export function parseSpec(content: string, name: string): Spec {
     },
   };
 }
+
+/**
+ * 导出 normalizeDeltaTitle 供测试和外部使用
+ */
+export { normalizeDeltaTitle };

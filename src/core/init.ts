@@ -176,6 +176,8 @@ export async function collectInteractiveOptions(): Promise<InitOptions> {
 export function initProject(projectRoot: string, options: InitOptions = {}): {
   skipped: boolean;
   created: string[];
+  /** CLAUDE.md 处理状态 */
+  claudeMdStatus?: 'created' | 'updated' | 'appended';
 } {
   const superspecDir = join(projectRoot, '.superspec');
 
@@ -244,7 +246,15 @@ export function initProject(projectRoot: string, options: InitOptions = {}): {
 
   // 5. 注入 CLAUDE.md
   const claudeMdPath = join(projectRoot, 'CLAUDE.md');
-  injectClaudeMd(claudeMdPath);
+  const claudeMdResult = injectClaudeMd(claudeMdPath);
+  let claudeMdStatus: 'created' | 'updated' | 'appended';
+  if (claudeMdResult.created) {
+    claudeMdStatus = 'created';
+  } else if (claudeMdResult.updated) {
+    claudeMdStatus = 'updated';
+  } else {
+    claudeMdStatus = 'appended';
+  }
   created.push('CLAUDE.md');
 
   // 6. 生成 CI workflow（如果启用）
@@ -296,5 +306,5 @@ jobs:
     }
   }
 
-  return { skipped: false, created };
+  return { skipped: false, created, claudeMdStatus };
 }

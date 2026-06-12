@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Delta Spec Header 解析**（Issue #8）— 校验器现在接受 delta spec 的标题前缀
+  - 支持 `## ADDED Requirements`、`## MODIFIED Requirements`、`## REMOVED Requirements`、`## RENAMED Requirements`
+  - 支持 `## ADDED Purpose` 等其他 section 的 delta 前缀
+  - 向后兼容：无前缀的 `## Requirements` 仍然有效
+
+- **CLAUDE.md 处理反馈**（Issue #7）— `superspec init` 现在明确告知 CLAUDE.md 的处理状态
+  - 🆕 创建新文件 / 🔄 更新已有哨兵内容 / 📎 追加到已有文件
+
+### Added
+
+- **change create 自动创建 init.md**（Issue #9）— 变更目录创建时自动生成背景情报模板
+  - `superspec change create <name>` 自动创建 `init.md` 引导用户填写上下文
+  - CLI 输出增加分步引导：填写 init.md → 生成 spec → 编辑 proposal
+
 ### Added
 
 - **Pipeline Run 命令** — 让管道引擎真正可执行
