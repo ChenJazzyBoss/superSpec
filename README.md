@@ -1,3 +1,5 @@
+
+
 <div align="center">
 
 # superSpec
@@ -46,6 +48,8 @@ flowchart LR
 ```
 
 ## Quick start
+
+Requires Node.js 20.0.0 or newer.
 
 ```bash
 # 1. Clone and build superspec
